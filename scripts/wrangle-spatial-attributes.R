@@ -2,8 +2,19 @@
 #            WORKFLOW TO WRANGLE DATA THROUGH SPATIAL ATTRIBUTES               #
 ################################################################################
 
+wfhz_data <- wfhz_data |> 
+  filter(!flag_wfhz == 1) |> 
+  select(enumArea, X, Y, gam) |> 
+  filter(!is.na(X)) |> 
+  st_as_sf(
+    coords = c("X", "Y"),
+    dim = "XY"
+  ) |> 
+  st_set_crs(value = "EPSG:4326") |> 
+  st_transform(crs = "EPSG:32636")
+
 ## ---- Summarise XY geocoordinates and cases at cluster level -----------------
-p <- wfhz |> 
+p <- wfhz_data |> 
   summarise(
     cases = sum(gam, na.rm = TRUE), 
     pop = n(),
@@ -65,4 +76,15 @@ ggplot(data = karamoja) +
   ) +
   theme_void()
 
+
+muac_data <- muac_data |> 
+  filter(!flag_mfaz == 1) |> 
+  select(enumArea, X, Y, gam) |> 
+  filter(!is.na(X)) |> 
+  st_as_sf(
+    coords = c("X", "Y"),
+    dim = "XY"
+  ) |> 
+  st_set_crs(value = "EPSG:4326") |> 
+  st_transform(crs = "EPSG:32636")
 ################################ End of workflow ###############################
