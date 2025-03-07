@@ -12,7 +12,7 @@ p <- wfhz |>
     .by = enumArea
   )
 
-## ---- Empirical bayes smoothed rates -----------------------------------------
+## ---- Compute aspatial (global) empirical bayes smoothed rates ---------------
 p[["smoothed_rates"]] <- eb_rates(p[c("cases", "pop")])[["EB.Rate"]]
 
 
@@ -22,8 +22,8 @@ p[["smoothed_rates"]] <- eb_rates(p[c("cases", "pop")])[["EB.Rate"]]
 #### Create a categorical variable with custom breakpoints ----
 p$rate_category <- cut(
   p$raw_rates, 
-  breaks = c(-Inf, 0.05, 0.09, 0.149, 0.299, Inf),  # Breakpoints
-  labels = c("<0.05", "0.05-0.09", "0.10-0.149", "0.15-0.299", "≥0.3"),  # Labels
+  breaks = c(-Inf, 0.05, 0.09, 0.149, 0.299, Inf),
+  labels = c("<0.05", "0.05-0.09", "0.10-0.149", "0.15-0.299", "≥0.3"),
   include.lowest = TRUE
 )
 

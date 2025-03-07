@@ -1,13 +1,11 @@
 ## ---- Load required libraries ------------------------------------------------
 library(readxl)
-library(tidyr)
 library(dplyr)
 library(lubridate)
 library(mwana)
 library(sf)
 library(gstat)
 library(stars)
-library(spdep)
 library(rgeoda)
 library(ggplot2)
 

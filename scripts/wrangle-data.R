@@ -45,7 +45,8 @@ muac <- data |>
     age = NA_real_,
     date = date(date),
     ChildDoB = date(ChildDoB),
-    ChildOedema = ifelse(ChildOedema == "2", "n", "y")
+    ChildOedema = ifelse(ChildOedema == "2", "n", "y"),
+    MUAC = round(MUAC, 0)
   ) |> 
   rename(
     muac = MUAC
@@ -63,20 +64,20 @@ muac <- data |>
     .recode_sex = FALSE,
     .recode_muac = TRUE,
     .decimals = 3
-  ) #|> 
-  # mutate(muac = recode_muac(muac, .to = "mm")) |> 
-  # define_wasting(
-  #   muac = muac,
-  #   edema = ChildOedema, 
-  #   .by = "muac"
-  # ) |> 
-  # filter(!flag_mfaz == 1) |> 
-  # select(enumArea, X, Y, gam) |> 
-  # filter(!is.na(X)) |> 
-  # st_as_sf(
-  #   coords = c("X", "Y"),
-  #   dim = "XY"
-  # ) |> 
-  # st_set_crs(value = "EPSG:4326") |> 
-  # st_transform(crs = "EPSG:32636")
+  ) |> 
+  mutate(muac = recode_muac(muac, .to = "mm")) |> 
+  define_wasting(
+    muac = muac,
+    edema = ChildOedema, 
+    .by = "muac"
+  ) |> 
+  filter(!flag_mfaz == 1) |> 
+  select(enumArea, X, Y, gam) |> 
+  filter(!is.na(X)) |> 
+  st_as_sf(
+    coords = c("X", "Y"),
+    dim = "XY"
+  ) |> 
+  st_set_crs(value = "EPSG:4326") |> 
+  st_transform(crs = "EPSG:32636")
 ################################ End of workflow ###############################
