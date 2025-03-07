@@ -13,6 +13,6 @@ data <- read_xlsx(
   path = "data-raw/anthro-data.xlsx",
   sheet = file_sheets[2]
 ) |> 
-  select(-c(ADM2_EN, parish, `Flag-WHO`, `WHZ-WHO`, Team, ID, HH))
+  select(-c(parish, `Flag-WHO`, `WHZ-WHO`, Team, ID, HH))
 
 ################################ End of workflow ###############################

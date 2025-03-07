@@ -1,5 +1,5 @@
 ## ---- Wrangle weight-for-height data -----------------------------------------
-wfhz <- data |> 
+wfhz_data <- data |> 
   mutate(
     age = NA_real_,
     date = date(date),
@@ -9,7 +9,7 @@ wfhz <- data |>
   rename(
     height = ChildHt_Height,
     weight = ChildWt, 
-    muac = MUAC
+    district = ADM2_EN
   ) |> 
   mw_wrangle_age(
     dos = date,
@@ -28,19 +28,10 @@ wfhz <- data |>
     zscores = wfhz,
     edema = ChildOedema,
     .by = "zscores"
-  ) |> 
-  filter(!flag_wfhz == 1) |> 
-  select(enumArea, X, Y, gam) |> 
-  filter(!is.na(X)) |> 
-  st_as_sf(
-    coords = c("X", "Y"),
-    dim = "XY"
-  ) |> 
-  st_set_crs(value = "EPSG:4326") |> 
-  st_transform(crs = "EPSG:32636")
+  )
 
 ## ---- Wrangle MUAC data ------------------------------------------------------
-muac <- data |> 
+muac_data <- data |> 
   mutate(
     age = NA_real_,
     date = date(date),
@@ -49,7 +40,8 @@ muac <- data |>
     MUAC = round(MUAC, 0)
   ) |> 
   rename(
-    muac = MUAC
+    muac = MUAC, 
+    district = ADM2_EN
   ) |> 
   mw_wrangle_age(
     dos = date,
@@ -70,14 +62,5 @@ muac <- data |>
     muac = muac,
     edema = ChildOedema, 
     .by = "muac"
-  ) |> 
-  filter(!flag_mfaz == 1) |> 
-  select(enumArea, X, Y, gam) |> 
-  filter(!is.na(X)) |> 
-  st_as_sf(
-    coords = c("X", "Y"),
-    dim = "XY"
-  ) |> 
-  st_set_crs(value = "EPSG:4326") |> 
-  st_transform(crs = "EPSG:32636")
+  )
 ################################ End of workflow ###############################
