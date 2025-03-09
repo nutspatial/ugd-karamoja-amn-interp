@@ -15,6 +15,19 @@ wfhz_data <- wfhz_data |>
   st_set_crs(value = "EPSG:4326") |> 
   st_transform(crs = "EPSG:32636")
 
+## ---- Create Voronoi tessellation and plot -----------------------------------
+ts <- wfhz_data |> 
+  st_union() |> 
+  st_voronoi() |> 
+  st_collection_extract(type = "POLYGON") |> 
+  st_sf() |> 
+  ggplot() +
+  geom_sf(fill = NA, color = "grey", linetype = "solid") + 
+  geom_sf(data = wfhz_data, color = "#148F77", size = 1.3) +
+  theme_minimal() +
+  ggtitle("Thiessen polygons of WFHZ data around Karamoja")
+
+
 ## ---- Calculate rates --------------------------------------------------------
 ### ---------------------- Raw rates aggregated at the survey cluster level ----
 w <- wfhz_data |> 
