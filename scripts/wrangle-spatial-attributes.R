@@ -1,9 +1,9 @@
 ################################################################################
-#            WORKFLOW TO WRANGLE DATA THROUGH SPATIAL ATTRIBUTES               #
+#             WORKFLOW TO WRANGLE DATA THROUGH SPATIAL ATTRIBUTES              #
 ################################################################################
 
 
-## ---- Set data as an `sf` object and reproject CRS (WFHZ) --------------------
+## ---- Set WFHZ data as an `sf` object  ---------------------------------------
 wfhz_data <- wfhz_data |> 
   filter(!flag_wfhz == 1) |> 
   select(enumArea, X, Y, gam) |> 
@@ -12,35 +12,70 @@ wfhz_data <- wfhz_data |>
     coords = c("X", "Y"),
     dim = "XY"
   ) |> 
-  st_set_crs(value = "EPSG:4326") |> 
-  st_transform(crs = "EPSG:32636")
+  st_set_crs(value = "EPSG:4326")
 
-## ---- Calculate rates --------------------------------------------------------
-### ---------------------- Raw rates aggregated at the survey cluster level ----
-w <- wfhz_data |> 
+## ---- Workflow to calculate Spatial Empirical Bayesian Rates (SEBSR) ---------
+dissolved_wfhz_data <- wfhz_data |> 
+  mutate(
+    long_x = st_coordinates(geometry)[, 1], 
+    lati_y = st_coordinates(geometry)[, 2]
+  ) |>  
+  group_by(enumArea) |> 
   summarise(
-    cases = sum(gam, na.rm = TRUE), 
+    cases = sum(gam, na.rm = TRUE),
     pop = n(),
-    raw_rates = cases / pop,
-    geometry = st_centroid(st_union(geometry)),
-    .by = enumArea
-  )
+    X = mean(long_x, na.rm = TRUE),
+    Y = mean(lati_y, na.rm = TRUE)
+  ) |> 
+  as_tibble() |> 
+  select(-geometry) |> 
+  st_as_sf(
+    coords = c("X", "Y"),
+    dim = "XY", 
+    crs = "EPSG:4326"
+  ) |> 
+  st_transform(crs = st_crs(karamoja_admn3))
 
-### -------------- Compute aspatial (global) empirical bayes smoothed rates ----
-w[["smoothed_rates"]] <- eb_rates(w[c("cases", "pop")])[["EB.Rate"]]
+### -------------------------- Calculate spatial weights: K-Near Neighbours ----
+sp_wts_wfhz <- dissolved_wfhz_data |> 
+  knearneigh(
+    k = 4,
+    longlat = TRUE,
+    use_kd_tree = TRUE
+  ) |> 
+  knn2nb(row.names = NULL)
 
-## ---- Map rates --------------------------------------------------------------
-### --------------------------------------------------------- Map raw rates ----
-
-#### Create a categorical variable with custom breakpoints ----
-w$rate_category <- cut(
-  w$raw_rates, 
-  breaks = c(-Inf, 0.05, 0.09, 0.149, 0.299, Inf),
-  labels = c("<0.05", "0.05-0.09", "0.10-0.149", "0.15-0.299", "≥0.3"),
-  include.lowest = TRUE
+### ------------------------------------------------------- Calculate rates ----
+sebsr_wfhz <- EBlocal(
+  ri = dissolved_wfhz_data$cases,
+  ni = dissolved_wfhz_data$pop,
+  nb = sp_wts_wfhz
 )
 
-#### Color-codes ----
+#### Bind data.frames -----
+wrangled_wfhz <- cbind(dissolved_wfhz_data, sebsr_wfhz)
+
+## ---- Map rates --------------------------------------------------------------
+
+### ----------------- Create a categorical variable with custom breakpoints ----
+wrangled_wfhz <- wrangled_wfhz |> 
+  mutate(
+    est = ifelse(est == "NaN", 0, est),
+    raw_cat = cut(
+      x = raw, 
+      breaks = c(-Inf, 0.05, 0.09, 0.149, 0.299, Inf),
+      labels = c("<0.05", "0.05-0.09", "0.10-0.149", "0.15-0.299", "≥0.3"),
+      include.lowest = TRUE
+    ), 
+    sebsr_cat = cut(
+      x = est, 
+      breaks = c(-Inf, 0.05, 0.09, 0.149, 0.299, Inf),
+      labels = c("<0.05", "0.05-0.09", "0.10-0.149", "0.15-0.299", "≥0.3"),
+      include.lowest = TRUE
+    )
+  )
+
+### ----------------------------------------------------------- Color-codes ----
 custom_colors <- c(
   "<0.05" = "#40E0D0",  
   "0.05-0.09" = "#DFFF00",
@@ -49,34 +84,65 @@ custom_colors <- c(
   "≥0.3" = "#f03b20"
 )
 
-#### Plot ----
-ggplot(data = karamoja) +
-  geom_sf(fill = "white") +
-  geom_sf(data = w, aes(color = rate_category)) +
+#### ------------------------------------------------------- Plot raw rates ----
+ggplot(data = karamoja_admn3) +
+  geom_sf(
+    fill = "white",
+    color = "#3F4342",
+    size = 0.8
+  ) +
+  geom_sf(
+    data = karamoja_admn4, 
+    fill = NA, 
+    color = "#F2F3F4"
+  ) +
+  geom_sf(
+    data = wrangled_wfhz,
+    aes(color = raw_cat)
+  ) +
   scale_color_manual(
     values = custom_colors, 
-    name = "Raw Rates" 
+    name = "Raw rates" 
   ) +
-  theme_void()
+  theme_void() +
+  labs(
+    title = "Spatial distribution GAM rates by sampling points across the Karamoja region",
+    subtitle = "Raw rates: cases / total number of children surveyed"
+  ) +
+  theme(
+    plot.title = element_text(size = 11),
+    plot.subtitle = element_text(size = 9, colour = "#706E6D")
+  )
 
-### ---------------------------------------------------- Map smoothed rates ----
-#### Create a categorical variable with custom breakpoints ----
-w$smoothed_rate_category <- cut(
-  w$smoothed_rates, 
-  breaks = c(-Inf, 0.05, 0.09, 0.149, 0.299, Inf),
-  labels = c("<0.05", "0.05-0.09", "0.10-0.149", "0.15-0.299", "≥0.3"),
-  include.lowest = TRUE
-)
-
-#### Plot ----
-ggplot(data = karamoja) +
-  geom_sf(fill = "white") +
-  geom_sf(data = w, aes(color = smoothed_rate_category)) +
+### ------------------------------------------------------------ Plot SEBSR ----
+ggplot(data = karamoja_admn3) +
+  geom_sf(
+    fill = "white", 
+    color = "#3F4342", 
+    size = 0.8
+  ) +
+  geom_sf(
+    data = karamoja_admn4, 
+    fill = NA, 
+    color = "#F2F3F4"
+  ) +
+  geom_sf(
+    data = wrangled_wfhz,
+    aes(color = sebsr_cat)
+  ) +
   scale_color_manual(
     values = custom_colors, 
     name = "Smoothed rates"
   ) +
-  theme_void()
+  theme_void() + 
+  labs(
+    title = "Spatial distribution of smoothed GAM rates by sampling points across the Karamoja region",
+    subtitle = "Rates smoothed using Spatial Empirical Bayesian"
+  ) +
+  theme(
+    plot.title = element_text(size = 10),
+    plot.subtitle = element_text(size = 9, colour = "#706E6D")
+  )
 
 ## ---- Set data as an `sf` object and reproject CRS (MUAC) --------------------
 muac_data <- muac_data |> 
@@ -87,69 +153,136 @@ muac_data <- muac_data |>
     coords = c("X", "Y"),
     dim = "XY"
   ) |> 
-  st_set_crs(value = "EPSG:4326") |> 
-  st_transform(crs = "EPSG:32636")
+  st_set_crs(value = "EPSG:4326")
 
-## ---- Calculate rates --------------------------------------------------------
-### ---------------------- Raw rates aggregated at the survey cluster level ----
-m <- muac_data |> 
+## ---- Workflow to calculate Spatial Empirical Bayesian Rates (SEBSR) ---------
+dissolved_muac_data <- muac_data |> 
+  mutate(
+    long_x = st_coordinates(geometry)[, 1], 
+    lati_y = st_coordinates(geometry)[, 2]
+  ) |>  
+  group_by(enumArea) |> 
   summarise(
-    cases = sum(gam, na.rm = TRUE), 
+    cases = sum(gam, na.rm = TRUE),
     pop = n(),
-    raw_rates = cases / pop,
-    geometry = st_centroid(st_union(geometry)),
-    .by = enumArea
-  )
+    X = mean(long_x, na.rm = TRUE),
+    Y = mean(lati_y, na.rm = TRUE)
+  ) |> 
+  as_tibble() |> 
+  select(-geometry) |> 
+  st_as_sf(
+    coords = c("X", "Y"),
+    dim = "XY", 
+    crs = "EPSG:4326"
+  ) |> 
+  st_transform(crs = st_crs(karamoja_admn3))
 
-### -------------- Compute aspatial (global) empirical bayes smoothed rates ----
-m[["smoothed_rates"]] <- eb_rates(m[c("cases", "pop")])[["EB.Rate"]]
+### -------------------------- Calculate spatial weights: K-Near Neighbours ----
+sp_wts_muac <- dissolved_muac_data |> 
+  knearneigh(
+    k = 4, 
+    longlat = TRUE,
+    use_kd_tree = TRUE
+  ) |> 
+  knn2nb(row.names = NULL)
+
+### ------------------------------------------------------- Calculate rates ----
+sebsr_muac <- EBlocal(
+  ri = dissolved_muac_data$cases ,
+  ni = dissolved_muac_data$pop,
+  nb = sp_wts_muac
+)
+
+#### Bind data.frames -----
+wrangled_muac <- cbind(dissolved_muac_data, sebsr_muac)
 
 ## ---- Map rates --------------------------------------------------------------
 ### --------------------------------------------------------- Map raw rates ----
 
 #### Create a categorical variable with custom breakpoints ----
-m$rate_category <- cut(
-  m$raw_rates, 
-  breaks = c(-Inf, 0.05, 0.09, 0.149, 0.299, Inf),
-  labels = c("<0.05", "0.05-0.09", "0.10-0.149", "0.15-0.299", "≥0.3"),
-  include.lowest = TRUE
-)
+wrangled_muac <- wrangled_muac |> 
+  mutate(
+    est = ifelse(est == "NaN", 0, est),
+    sebsr_cat = cut(
+      x = est,
+      breaks = c(-Inf, 0.05, 0.09, 0.149, Inf),
+      labels = c("<0.05", "0.05-0.09", "0.10-0.149", "≥0.15"),
+      include.lowest = TRUE
+    ), 
+    raw_cat = cut(
+      x = raw, 
+      breaks = c(-Inf, 0.05, 0.09, 0.149, Inf),
+      labels = c("<0.05", "0.05-0.09", "0.10-0.149", "≥0.15"),
+      include.lowest = TRUE
+    )
+  )
 
 #### Color-codes ----
 custom_colors <- c(
   "<0.05" = "#40E0D0",  
   "0.05-0.09" = "#DFFF00",
   "0.10-0.149" = "#FFBF00",
-  "0.15-0.299" = "#FF7F50",
-  "≥0.3" = "#f03b20"
+  "≥0.15" = "#f03b20"
 )
 
-#### Plot ----
-ggplot(data = karamoja) +
-  geom_sf(fill = "white") +
-  geom_sf(data = m, aes(color = rate_category)) +
+#### Plot raw rates ----
+ggplot(data = karamoja_admn3) +
+  geom_sf(
+    fill = "white",
+    color = "#3F4342",
+    size = 0.8
+  ) +
+  geom_sf(
+    data = karamoja_admn4, 
+    fill = NA, 
+    color = "#F2F3F4"
+  ) +
+  geom_sf(
+    data = wrangled_muac, 
+    aes(color = raw_cat)
+  ) +
   scale_color_manual(
     values = custom_colors, 
-    name = "Raw Rates" 
+    name = "Raw rates" 
   ) +
-  theme_void()
+  theme_void() +
+  labs(
+    title = "Spatial distribution GAM by MUAC rates by sampling points across the Karamoja region",
+    subtitle = "Raw rates: cases / total number of children surveyed"
+  ) +
+  theme(
+    plot.title = element_text(size = 10),
+    plot.subtitle = element_text(size = 9, colour = "#706E6D")
+  )
 
-### ---------------------------------------------------- Map smoothed rates ----
-#### Create a categorical variable with custom breakpoints ----
-m$smoothed_rate_category <- cut(
-  m$smoothed_rates, 
-  breaks = c(-Inf, 0.05, 0.09, 0.149, 0.299, Inf),
-  labels = c("<0.05", "0.05-0.09", "0.10-0.149", "0.15-0.299", "≥0.3"),
-  include.lowest = TRUE
-)
-
-#### Plot ----
-ggplot(data = karamoja) +
-  geom_sf(fill = "white") +
-  geom_sf(data = m, aes(color = smoothed_rate_category)) +
+#### Plot SEBSR ----
+ggplot(data = karamoja_admn3) +
+  geom_sf(
+    fill = "white", 
+    color = "#3F4342",
+    size = 0.8
+  ) +
+  geom_sf(
+    data = karamoja_admn4, 
+    fill = NA, 
+    color = "#F2F3F4"
+  ) +
+  geom_sf(
+    data = wrangled_muac, 
+    aes(color = sebsr_cat)
+  ) +
   scale_color_manual(
     values = custom_colors, 
     name = "Smoothed rates"
   ) +
-  theme_void()
+  theme_void() + 
+  labs(
+    title = "Spatial distribution of smoothed GAM rates by sampling points across the Karamoja region",
+    subtitle = "Rates smoothed using Spatial Empirical Bayesian"
+  ) +
+  theme(
+    plot.title = element_text(size = 10),
+    plot.subtitle = element_text(size = 9, colour = "#706E6D")
+  )
+
 ################################ End of workflow ###############################
