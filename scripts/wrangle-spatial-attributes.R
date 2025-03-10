@@ -177,16 +177,17 @@ wrangled_muac <- cbind(dissolved_muac_data, sebsr_muac)
 #### Create a categorical variable with custom breakpoints ----
 wrangled_muac <- wrangled_muac |> 
   mutate(
+    est = ifelse(est == "NaN", 0, est),
     sebsr_cat = cut(
       x = est,
-      breaks = c(-Inf, 0.05, 0.09, 0.149, 0.299, Inf),
-      labels = c("<0.05", "0.05-0.09", "0.10-0.149", "0.15-0.299", "≥0.3"),
+      breaks = c(-Inf, 0.05, 0.09, 0.149, Inf),
+      labels = c("<0.05", "0.05-0.09", "0.10-0.149", "≥0.15"),
       include.lowest = TRUE
     ), 
     raw_cat = cut(
       x = raw, 
-      breaks = c(-Inf, 0.05, 0.09, 0.149, 0.299, Inf),
-      labels = c("<0.05", "0.05-0.09", "0.10-0.149", "0.15-0.299", "≥0.3"),
+      breaks = c(-Inf, 0.05, 0.09, 0.149, Inf),
+      labels = c("<0.05", "0.05-0.09", "0.10-0.149", "≥0.15"),
       include.lowest = TRUE
     )
   )
@@ -196,8 +197,7 @@ custom_colors <- c(
   "<0.05" = "#40E0D0",  
   "0.05-0.09" = "#DFFF00",
   "0.10-0.149" = "#FFBF00",
-  "0.15-0.299" = "#FF7F50",
-  "≥0.3" = "#f03b20"
+  "≥0.15" = "#f03b20"
 )
 
 #### Plot raw rates ----
@@ -214,7 +214,7 @@ ggplot(data = karamoja) +
     subtitle = "Raw rates: cases / total number of children surveyed"
   ) +
   theme(
-    plot.title = element_text(size = 11),
+    plot.title = element_text(size = 10),
     plot.subtitle = element_text(size = 9, colour = "#706E6D")
   )
 
@@ -232,7 +232,7 @@ ggplot(data = karamoja) +
     subtitle = "Rates smoothed using Spatial Empirical Bayesian"
   ) +
   theme(
-    plot.title = element_text(size = 11),
+    plot.title = element_text(size = 10),
     plot.subtitle = element_text(size = 9, colour = "#706E6D")
   )
 
