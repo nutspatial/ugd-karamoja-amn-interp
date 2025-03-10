@@ -34,7 +34,7 @@ dissolved_wfhz_data <- wfhz_data |>
     dim = "XY", 
     crs = "EPSG:4326"
   ) |> 
-  st_transform(crs = st_crs(karamoja))
+  st_transform(crs = st_crs(karamoja_admn3))
 
 ### -------------------------- Calculate spatial weights: K-Near Neighbours ----
 sp_wts_wfhz <- dissolved_wfhz_data |> 
@@ -60,6 +60,7 @@ wrangled_wfhz <- cbind(dissolved_wfhz_data, sebsr_wfhz)
 ### ----------------- Create a categorical variable with custom breakpoints ----
 wrangled_wfhz <- wrangled_wfhz |> 
   mutate(
+    est = ifelse(est == "NaN", 0, est),
     raw_cat = cut(
       x = raw, 
       breaks = c(-Inf, 0.05, 0.09, 0.149, 0.299, Inf),
@@ -84,9 +85,21 @@ custom_colors <- c(
 )
 
 #### ------------------------------------------------------- Plot raw rates ----
-ggplot(data = karamoja) +
-  geom_sf(fill = "white", color = "grey") +
-  geom_sf(data = wrangled_wfhz, aes(color = raw_cat)) +
+ggplot(data = karamoja_admn3) +
+  geom_sf(
+    fill = "white",
+    color = "#3F4342",
+    size = 0.8
+  ) +
+  geom_sf(
+    data = karamoja_admn4, 
+    fill = NA, 
+    color = "#F2F3F4"
+  ) +
+  geom_sf(
+    data = wrangled_wfhz,
+    aes(color = raw_cat)
+  ) +
   scale_color_manual(
     values = custom_colors, 
     name = "Raw rates" 
@@ -102,9 +115,21 @@ ggplot(data = karamoja) +
   )
 
 ### ------------------------------------------------------------ Plot SEBSR ----
-ggplot(data = karamoja) +
-  geom_sf(fill = "white", color = "grey") +
-  geom_sf(data = wrangled_wfhz, aes(color = sebsr_cat)) +
+ggplot(data = karamoja_admn3) +
+  geom_sf(
+    fill = "white", 
+    color = "#3F4342", 
+    size = 0.8
+  ) +
+  geom_sf(
+    data = karamoja_admn4, 
+    fill = NA, 
+    color = "#F2F3F4"
+  ) +
+  geom_sf(
+    data = wrangled_wfhz,
+    aes(color = sebsr_cat)
+  ) +
   scale_color_manual(
     values = custom_colors, 
     name = "Smoothed rates"
@@ -115,7 +140,7 @@ ggplot(data = karamoja) +
     subtitle = "Rates smoothed using Spatial Empirical Bayesian"
   ) +
   theme(
-    plot.title = element_text(size = 11),
+    plot.title = element_text(size = 10),
     plot.subtitle = element_text(size = 9, colour = "#706E6D")
   )
 
@@ -150,7 +175,7 @@ dissolved_muac_data <- muac_data |>
     dim = "XY", 
     crs = "EPSG:4326"
   ) |> 
-  st_transform(crs = st_crs(karamoja))
+  st_transform(crs = st_crs(karamoja_admn3))
 
 ### -------------------------- Calculate spatial weights: K-Near Neighbours ----
 sp_wts_muac <- dissolved_muac_data |> 
@@ -201,9 +226,21 @@ custom_colors <- c(
 )
 
 #### Plot raw rates ----
-ggplot(data = karamoja) +
-  geom_sf(fill = "white", color = "grey") +
-  geom_sf(data = wrangled_muac, aes(color = raw_cat)) +
+ggplot(data = karamoja_admn3) +
+  geom_sf(
+    fill = "white",
+    color = "#3F4342",
+    size = 0.8
+  ) +
+  geom_sf(
+    data = karamoja_admn4, 
+    fill = NA, 
+    color = "#F2F3F4"
+  ) +
+  geom_sf(
+    data = wrangled_muac, 
+    aes(color = raw_cat)
+  ) +
   scale_color_manual(
     values = custom_colors, 
     name = "Raw rates" 
@@ -219,9 +256,21 @@ ggplot(data = karamoja) +
   )
 
 #### Plot SEBSR ----
-ggplot(data = karamoja) +
-  geom_sf(fill = "white", color = "grey") +
-  geom_sf(data = wrangled_muac, aes(color = sebsr_cat)) +
+ggplot(data = karamoja_admn3) +
+  geom_sf(
+    fill = "white", 
+    color = "#3F4342",
+    size = 0.8
+  ) +
+  geom_sf(
+    data = karamoja_admn4, 
+    fill = NA, 
+    color = "#F2F3F4"
+  ) +
+  geom_sf(
+    data = wrangled_muac, 
+    aes(color = sebsr_cat)
+  ) +
   scale_color_manual(
     values = custom_colors, 
     name = "Smoothed rates"
