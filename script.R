@@ -4,16 +4,16 @@ library(dplyr)
 library(lubridate)
 library(mwana)
 library(sf)
+library(spdep)
 library(gstat)
 library(stars)
-library(rgeoda)
 library(ggplot2)
 
 ## ---- Read in input data and set Coordinate Reference System -----------------
 source("scripts/read-in-input-data.R")
 
 ## ---- Wrangle non-spatial data -----------------------------------------------
-source("scripts/wrangle-data.R")
+source("scripts/wrangle-aspatial-attributes.R")
 
 ## ---- Run data plausibility checks -------------------------------------------
 source("scripts/data-quality-check.R")
