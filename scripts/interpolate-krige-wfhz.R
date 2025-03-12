@@ -167,7 +167,6 @@ ggplot() +
     mapping = aes(label = factor(ADM2_EN)),
     show.legend = TRUE, 
     color = "#34495E", 
-    label.size = 1,
     size = 3,
   ) +
   labs(
@@ -227,7 +226,6 @@ ggplot() +
     mapping = aes(label = factor(ADM2_EN)),
     show.legend = TRUE, 
     color = "#34495E", 
-    label.size = 1,
     size = 3,
   ) +
   labs(
