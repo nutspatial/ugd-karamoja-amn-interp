@@ -80,13 +80,39 @@ cv_wfhz <- krige.cv(
   maxdist = 9000
 )
 
-#### Cross-validation statistics ----
+### ------------------------------------------- Cross-validation statistics ----
 cv_stats_wfhz <- cv_wfhz |> 
   as_tibble() |> 
   summarise(
-    mean_error = mean(residual, na.rm = TRUE), ## Idealy 0
+    mean_error = mean(residual, na.rm = TRUE), ## be as close to zero as possible
     MSPE = mean(residual^2, na.rm = TRUE), ## Ideally small
     MSNR = mean(zscore^2, na.rm = TRUE), ## Mean squared normalized error, should be close to 1
     r2_obspred = cor(observed, observed - residual, use = "complete.obs"), ## Ideally 1
     r2_predobs = cor(observed - residual, residual, use = "complete.obs") ## Ideally should be close to 0
+  )
+
+### --------------------------------- A scatterplot of predicted ~ observed ----
+ggplot(cv_wfhz, aes(x = var1.pred, y = observed)) +
+  geom_point(size = 1.2, color = "#BA4A00") +
+  geom_abline(
+    intercept = 0,
+    slope = 1,
+    color = "#566573",
+    linewidth = 0.3
+  ) +
+  geom_smooth(
+    method = "lm", 
+    color = "blue", 
+    linewidth = 0.9, 
+    se = FALSE
+  ) + 
+  theme_minimal() +
+  labs(
+    title = "A scatterplot of observed values against predicted",
+    x = "Predicted",
+    y = "Observed"
+  ) +
+  theme(
+    plot.title = element_text(size = 11),
+    plot.subtitle = element_text(size = 9, colour = "#706E6D")
   )
