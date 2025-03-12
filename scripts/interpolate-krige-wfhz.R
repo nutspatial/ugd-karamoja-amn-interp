@@ -138,3 +138,89 @@ ggplot() +
     color = "grey"
   ) +
   theme_void()
+
+### -------------------------------------------- Predicting standard errors ----
+
+
+
+### ------------------------------------------------------- Get areal means ----
+#### At district level ----
+pred_mean_admn3 <- krige(
+  formula = est ~ 1, 
+  locations = wrangled_wfhz,
+  nmin = 3, 
+  nmax = 4,
+  model = v, 
+  newdata = karamoja_admn2
+)
+
+#### Cloropleth map of the mean predicted prevalence at district level ----
+ggplot() +
+  geom_sf(data = pred_mean_admn3, aes(fill = var1.pred), color = "black", size = 0.2) +
+  scale_fill_gradientn(colors = custom_colors) +
+    geom_sf(
+      data = karamoja_admn2,
+      fill = NA, 
+      color = "#F2F3F4",
+      size = 0.8
+    ) +
+  geom_sf_text(
+    data = karamoja_admn2,
+    mapping = aes(label = factor(ADM2_EN)),
+    show.legend = TRUE, 
+    color = "#34495E", 
+    label.size = 1,
+    size = 3,
+  ) +
+  labs(
+    title = "Mean predicted prevalence at district level",
+    fill = "Predicted Values"
+  ) +
+  theme(
+    plot.title = element_text(size = 10),
+    plot.subtitle = element_text(size = 9, colour = "#706E6D")
+  ) +
+  theme_void()
+
+#### At county level ----
+pred_mean_admn4 <- krige(
+  formula = est ~ 1, 
+  locations = wrangled_wfhz,
+  nmin = 3, 
+  nmax = 4,
+  model = v, 
+  newdata = karamoja_admn4
+)
+
+#### Cloropleth map of the mean predicted prevalence at county level ----
+ggplot() +
+  geom_sf(data = pred_mean_admn4, aes(fill = var1.pred), color = "black", size = 0.2) +
+  scale_fill_gradientn(colors = custom_colors) +
+  geom_sf(
+    data = karamoja_admn4, 
+    fill = NA, 
+    color = "#F2F3F4"
+  ) +
+  geom_sf(
+    data = karamoja_admn2,
+    fill = NA, 
+    color = "#3F4342", 
+    size = 0.8
+  ) +
+  geom_sf_text(
+    data = karamoja_admn2,
+    mapping = aes(label = factor(ADM2_EN)),
+    show.legend = TRUE, 
+    color = "#34495E", 
+    label.size = 1,
+    size = 3,
+  ) +
+  labs(
+    title = "Mean predicted prevalence at county level",
+    fill = "Predicted Values"
+  ) +
+  theme(
+    plot.title = element_text(size = 10),
+    plot.subtitle = element_text(size = 9, colour = "#706E6D")
+  ) +
+  theme_void()
