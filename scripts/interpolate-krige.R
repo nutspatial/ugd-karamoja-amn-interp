@@ -69,3 +69,24 @@ ggplot() +
     y = expression(gamma(h)),
     title = "Empirical & Fitted Variogram"
   )
+
+### ---------------------------------- Cross-validate: leave-one-out method ----
+cv_wfhz <- krige.cv(
+  formula = est ~ 1, 
+  model = v,
+  locations = wrangled_wfhz, 
+  nmin = 3,
+  nmax = 4, 
+  maxdist = 9000
+)
+
+#### Cross-validation statistics ----
+cv_stats_wfhz <- cv_wfhz |> 
+  as_tibble() |> 
+  summarise(
+    mean_error = mean(residual, na.rm = TRUE), ## Idealy 0
+    MSPE = mean(residual^2, na.rm = TRUE), ## Ideally small
+    MSNR = mean(zscore^2, na.rm = TRUE), ## Mean squared normalized error, should be close to 1
+    r2_obspred = cor(observed, observed - residual, use = "complete.obs"), ## Ideally 1
+    r2_predobs = cor(observed - residual, residual, use = "complete.obs") ## Ideally should be close to 0
+  )
