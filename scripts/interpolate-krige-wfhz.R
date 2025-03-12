@@ -5,7 +5,7 @@
 ## ---- Create a surface to interpolate on -------------------------------------
 grid <- karamoja_admn4 |> 
   st_bbox() |> 
-  st_as_stars(dx = 5000) |> 
+  st_as_stars(dx = 2000) |> 
   st_crop(karamoja_admn4)
 
 ## ---- Fit a variogram model --------------------------------------------------
@@ -116,3 +116,25 @@ ggplot(cv_wfhz, aes(x = var1.pred, y = observed)) +
     plot.title = element_text(size = 11),
     plot.subtitle = element_text(size = 9, colour = "#706E6D")
   )
+
+## ---- Interpolate ------------------------------------------------------------
+interp <- krige(
+  formula = est ~ 1, 
+  locations = wrangled_wfhz,
+  nmin = 3, 
+  nmax = 4,
+  maxdist = 9000, 
+  model = v, 
+  newdata = grid
+)
+
+### ------------------------------------------------- Visualize map surface ----
+ggplot() + 
+  geom_stars(data = interp, aes(fill = var1.pred, x = x, y = y)) + 
+  scale_fill_viridis_c(option = "viridis", na.value = "transparent") + 
+  geom_sf(
+    data = st_cast(karamoja_admn4, "MULTILINESTRING"), 
+    linewidth = 0.2, 
+    color = "grey"
+  ) +
+  theme_void()

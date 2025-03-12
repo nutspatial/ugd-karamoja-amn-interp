@@ -25,4 +25,4 @@ source("scripts/shapefiles.R")
 source("scripts/wrangle-spatial-attributes.R")
 
 ## ---- Run spatial interpolation ----------------------------------------------
-source("scripts/interpolate.R")
+source("scripts/interpolate-krige-wfhz.R")
