@@ -34,7 +34,7 @@ aggr_wfhz <- wfhz |>
     dim = "XY", 
     crs = "EPSG:4326"
   ) |> 
-  st_transform(crs = st_crs(karamoja_admn3))
+  st_transform(crs = st_crs(karamoja_admn2))
 
 ### -------------------------- Calculate spatial weights: K-Near Neighbours ----
 sp_wts_wfhz <- aggr_wfhz |> 
@@ -86,7 +86,7 @@ custom_colors <- c(
 )
 
 #### ------------------------------------------------------- Plot raw rates ----
-ggplot(data = karamoja_admn3) +
+ggplot(data = karamoja_admn2) +
   geom_sf(
     fill = "white",
     color = "#3F4342",
@@ -116,7 +116,7 @@ ggplot(data = karamoja_admn3) +
   )
 
 ### ------------------------------------------------------------ Plot SEBSR ----
-ggplot(data = karamoja_admn3) +
+ggplot(data = karamoja_admn2) +
   geom_sf(
     fill = "white", 
     color = "#3F4342", 
@@ -176,7 +176,7 @@ aggr_muac <- muac |>
     dim = "XY", 
     crs = "EPSG:4326"
   ) |> 
-  st_transform(crs = st_crs(karamoja_admn3))
+  st_transform(crs = st_crs(karamoja_admn2))
 
 ### -------------------------- Calculate spatial weights: K-Near Neighbours ----
 sp_wts_muac <- aggr_muac |> 
@@ -227,7 +227,7 @@ custom_colors <- c(
 )
 
 #### Plot raw rates ----
-ggplot(data = karamoja_admn3) +
+ggplot(data = karamoja_admn2) +
   geom_sf(
     fill = "white",
     color = "#3F4342",
@@ -257,7 +257,7 @@ ggplot(data = karamoja_admn3) +
   )
 
 #### Plot SEBSR ----
-ggplot(data = karamoja_admn3) +
+ggplot(data = karamoja_admn2) +
   geom_sf(
     fill = "white", 
     color = "#3F4342",

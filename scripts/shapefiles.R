@@ -9,8 +9,8 @@ districts <- c(
 
 ## ---- Read in the shapefiles and set the CRS ---------------------------------
 ### ------------------------------------------------------------- Districts ----
-karamoja_admn3 <- st_read(
-  dsn = "data-raw/uga_admbnda_adm3_ubos_20200824.shp"
+karamoja_admn2 <- st_read(
+  dsn = "data-raw/uga_admbnda_adm2_ubos_20200824.shp"
 ) |> 
   filter(ADM2_EN %in% districts) |> 
   st_transform(crs = "EPSG:32636")
