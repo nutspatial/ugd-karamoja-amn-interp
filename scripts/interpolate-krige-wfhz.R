@@ -10,6 +10,7 @@ grid <- karamoja_admn4 |>
 
 ## ---- Fit a variogram model --------------------------------------------------
 ### ------------------------------------------------ Experimental variogram ----
+
 #### Check the maximum and minimum distance between sampling points ----
 dist_max <- max(dist(st_coordinates(wrangled_wfhz))) / 2
 dist_min <- min(dist(st_coordinates(wrangled_wfhz)))
@@ -34,7 +35,7 @@ ggplot(v0, aes(x = dist, y = gamma)) +
     y = expression(gamma(h))
   )
 
-### --------------------------------------------------- Fit variogram model ----
+#### Fit variogram model ----
 v <- fit.variogram(
   object = v0,
   model = vgm(model = c("Exp", "Sph", "Gau", "Mat"))
@@ -65,7 +66,7 @@ ggplot() +
     title = "Empirical & Fitted Variogram"
   )
 
-### ---------------------------------- Cross-validate: leave-one-out method ----
+### -------------------------------- Cross-validation: leave-one-out method ----
 cv_wfhz <- krige.cv(
   formula = est ~ 1, 
   model = v,
@@ -86,7 +87,7 @@ cv_wfhz_stats <- cv_wfhz |>
     r2_predobs = cor(observed - residual, residual, use = "complete.obs") ## Ideally should be close to 0
   )
 
-### --------------------------------- A scatterplot of predicted ~ observed ----
+### --------------------------------------------- Plot predicted ~ observed ----
 ggplot(cv_wfhz, aes(x = var1.pred, y = observed)) +
   geom_point(size = 1.2, color = "#BA4A00") +
   geom_abline(
@@ -141,8 +142,8 @@ ggplot() +
 
 
 ### ------------------------------------------------------- Get areal means ----
-#### At district level ----
-pred_mean_admn3 <- krige(
+#### At district level (ADM2_EN) ----
+pred_mean_admn2 <- krige(
   formula = est ~ 1, 
   locations = wrangled_wfhz,
   nmin = 3, 
@@ -151,9 +152,9 @@ pred_mean_admn3 <- krige(
   newdata = karamoja_admn2
 )
 
-#### Cloropleth map of the mean predicted prevalence at district level ----
+##### Cloropleth map of the mean predicted prevalence at district level ----
 ggplot() +
-  geom_sf(data = pred_mean_admn3, aes(fill = var1.pred), color = "black", size = 0.2) +
+  geom_sf(data = pred_mean_admn2, aes(fill = var1.pred), color = "black", size = 0.2) +
   scale_fill_gradientn(colors = custom_colors) +
     geom_sf(
       data = karamoja_admn2,
@@ -179,7 +180,24 @@ ggplot() +
   ) +
   theme_void()
 
-#### At county level ----
+##### Compare mean predicted prevalence against original survey results -----
+pred_vs_original <- wfhz_data |> 
+  rename(cluster = enumArea) |> 
+  mw_estimate_prevalence_wfhz(
+    wt = NULL, 
+    edema = ChildOedema,
+    .by = district
+  ) |> 
+  select(district, gam_p) |> 
+  mutate(
+    survey = gam_p * 100,
+    interp = pred_mean_admn2$var1.pred,
+    bias = interp - survey
+  ) |> 
+  select(-gam_p)
+
+
+#### At county level (ADM4_EN) ----
 pred_mean_admn4 <- krige(
   formula = est ~ 1, 
   locations = wrangled_wfhz,
@@ -221,3 +239,5 @@ ggplot() +
     plot.subtitle = element_text(size = 9, colour = "#706E6D")
   ) +
   theme_void()
+
+################################ End of workflow ###############################
