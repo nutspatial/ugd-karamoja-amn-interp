@@ -59,28 +59,30 @@ wrangled_wfhz <- cbind(aggr_wfhz, sebsr_wfhz)
 ### ----------------- Create a categorical variable with custom breakpoints ----
 wrangled_wfhz <- wrangled_wfhz |> 
   mutate(
+    est = est * 100,
+    raw = raw * 100,
     est = ifelse(est == "NaN", 0, est),
     raw_cat = cut(
       x = raw, 
-      breaks = c(-Inf, 0.05, 0.09, 0.149, 0.299, Inf),
-      labels = c("<0.05", "0.05-0.09", "0.10-0.149", "0.15-0.299", "≥0.3"),
+      breaks = c(-Inf, 5.0, 9.9, 14.9, 29.9, Inf),
+      labels = c("<5.0%", "5.0-9.9%", "10.0-14.9%", "15.0-29.9%", "≥30.0%"),
       include.lowest = TRUE
     ), 
     sebsr_cat = cut(
       x = est, 
-      breaks = c(-Inf, 0.05, 0.09, 0.149, 0.299, Inf),
-      labels = c("<0.05", "0.05-0.09", "0.10-0.149", "0.15-0.299", "≥0.3"),
+      breaks = c(-Inf, 5.0, 9.9, 14.9, 29.9, Inf),
+      labels = c("<5.0%", "5.0-9.9%", "10.0-14.9%", "15.0-29.9%", "≥30.0%"),
       include.lowest = TRUE
     )
   )
 
 ### ----------------------------------------------------------- Color-codes ----
 custom_colors <- c(
-  "<0.05" = "#40E0D0",  
-  "0.05-0.09" = "#DFFF00",
-  "0.10-0.149" = "#FFBF00",
-  "0.15-0.299" = "#FF7F50",
-  "≥0.3" = "#f03b20"
+  "<5.0%" = "#40E0D0",  
+  "5.0-9.9%" = "#DFFF00",
+  "10.0-14.9%" = "#FFBF00",
+  "15.0-29.9%" = "#FF7F50",
+  "≥30.0%" = "#f03b20"
 )
 
 #### ------------------------------------------------------- Plot raw rates ----
