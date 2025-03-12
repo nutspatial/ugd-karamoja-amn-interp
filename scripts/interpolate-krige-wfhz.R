@@ -29,9 +29,6 @@ ggplot(v0, aes(x = dist, y = gamma)) +
     limits = c(0, 1.055 * max(v0$dist)), 
     breaks = seq(0, 1.055 * max(v0$dist), length.out = 6)
   ) +
-  scale_y_continuous(
-    limits = c(0, 0.020)
-  ) +
   labs(
     x = "Distance (h)", 
     y = expression(gamma(h))
