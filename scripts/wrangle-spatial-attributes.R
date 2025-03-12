@@ -4,7 +4,7 @@
 
 
 ## ---- Set WFHZ data as an `sf` object  ---------------------------------------
-wfhz_data <- wfhz_data |> 
+wfhz <- wfhz_data |> 
   filter(!flag_wfhz == 1) |> 
   select(enumArea, X, Y, gam) |> 
   filter(!is.na(X)) |> 
@@ -15,7 +15,7 @@ wfhz_data <- wfhz_data |>
   st_set_crs(value = "EPSG:4326")
 
 ## ---- Workflow to calculate Spatial Empirical Bayesian Rates (SEBSR) ---------
-dissolved_wfhz_data <- wfhz_data |> 
+aggr_wfhz <- wfhz |> 
   mutate(
     long_x = st_coordinates(geometry)[, 1], 
     lati_y = st_coordinates(geometry)[, 2]
@@ -37,7 +37,7 @@ dissolved_wfhz_data <- wfhz_data |>
   st_transform(crs = st_crs(karamoja_admn3))
 
 ### -------------------------- Calculate spatial weights: K-Near Neighbours ----
-sp_wts_wfhz <- dissolved_wfhz_data |> 
+sp_wts_wfhz <- aggr_wfhz |> 
   knearneigh(
     k = 4,
     longlat = TRUE,
@@ -47,16 +47,15 @@ sp_wts_wfhz <- dissolved_wfhz_data |>
 
 ### ------------------------------------------------------- Calculate rates ----
 sebsr_wfhz <- EBlocal(
-  ri = dissolved_wfhz_data$cases,
-  ni = dissolved_wfhz_data$pop,
+  ri = aggr_wfhz$cases,
+  ni = aggr_wfhz$pop,
   nb = sp_wts_wfhz
 )
 
 #### Bind data.frames -----
-wrangled_wfhz <- cbind(dissolved_wfhz_data, sebsr_wfhz)
+wrangled_wfhz <- cbind(aggr_wfhz, sebsr_wfhz)
 
 ## ---- Map rates --------------------------------------------------------------
-
 ### ----------------- Create a categorical variable with custom breakpoints ----
 wrangled_wfhz <- wrangled_wfhz |> 
   mutate(
@@ -145,7 +144,7 @@ ggplot(data = karamoja_admn3) +
   )
 
 ## ---- Set data as an `sf` object and reproject CRS (MUAC) --------------------
-muac_data <- muac_data |> 
+muac <- muac_data |> 
   filter(!flag_mfaz == 1) |> 
   select(enumArea, X, Y, gam) |> 
   filter(!is.na(X)) |> 
@@ -156,7 +155,7 @@ muac_data <- muac_data |>
   st_set_crs(value = "EPSG:4326")
 
 ## ---- Workflow to calculate Spatial Empirical Bayesian Rates (SEBSR) ---------
-dissolved_muac_data <- muac_data |> 
+aggr_muac <- muac |> 
   mutate(
     long_x = st_coordinates(geometry)[, 1], 
     lati_y = st_coordinates(geometry)[, 2]
@@ -178,7 +177,7 @@ dissolved_muac_data <- muac_data |>
   st_transform(crs = st_crs(karamoja_admn3))
 
 ### -------------------------- Calculate spatial weights: K-Near Neighbours ----
-sp_wts_muac <- dissolved_muac_data |> 
+sp_wts_muac <- aggr_muac |> 
   knearneigh(
     k = 4, 
     longlat = TRUE,
@@ -188,13 +187,13 @@ sp_wts_muac <- dissolved_muac_data |>
 
 ### ------------------------------------------------------- Calculate rates ----
 sebsr_muac <- EBlocal(
-  ri = dissolved_muac_data$cases ,
-  ni = dissolved_muac_data$pop,
+  ri = aggr_muac$cases ,
+  ni = aggr_muac$pop,
   nb = sp_wts_muac
 )
 
 #### Bind data.frames -----
-wrangled_muac <- cbind(dissolved_muac_data, sebsr_muac)
+wrangled_muac <- cbind(aggr_muac, sebsr_muac)
 
 ## ---- Map rates --------------------------------------------------------------
 ### --------------------------------------------------------- Map raw rates ----
