@@ -9,7 +9,6 @@ grid <- karamoja_admn4 |>
   st_crop(karamoja_admn4)
 
 ## ---- Fit a variogram model --------------------------------------------------
-
 ### ------------------------------------------------ Experimental variogram ----
 #### Check the maximum and minimum distance between sampling points ----
 dist_max <- max(dist(st_coordinates(wrangled_wfhz))) / 2
@@ -45,7 +44,6 @@ v <- fit.variogram(
 )
 
 #### Plot variogram ----
-##### Convert fitted model to a data frame for plotting ----
 v_model <- variogramLine(v, maxdist = max(v0$dist), n = 100)
 ggplot() +
   geom_point(
@@ -81,7 +79,7 @@ cv_wfhz <- krige.cv(
 )
 
 ### ------------------------------------------- Cross-validation statistics ----
-cv_stats_wfhz <- cv_wfhz |> 
+cv_wfhz_stats <- cv_wfhz |> 
   as_tibble() |> 
   summarise(
     mean_error = mean(residual, na.rm = TRUE), ## be as close to zero as possible
@@ -123,14 +121,16 @@ interp <- krige(
   locations = wrangled_wfhz,
   nmin = 3, 
   nmax = 4,
-  maxdist = 9000, 
   model = v, 
   newdata = grid
 )
 
 ### ------------------------------------------------- Visualize map surface ----
 ggplot() + 
-  geom_stars(data = interp, aes(fill = var1.pred, x = x, y = y)) + 
+  geom_stars(
+    data = interp, 
+    aes(fill = var1.pred, x = x, y = y)
+  ) + 
   scale_fill_viridis_c(option = "viridis", na.value = "transparent") + 
   geom_sf(
     data = st_cast(karamoja_admn4, "MULTILINESTRING"), 
