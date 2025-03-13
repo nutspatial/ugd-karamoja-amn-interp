@@ -131,11 +131,25 @@ ggplot() +
     data = interp, 
     aes(fill = var1.pred, x = x, y = y)
   ) + 
-  scale_fill_viridis_c(option = "viridis", na.value = "transparent") + 
+  scale_fill_gradientn(
+    colors = ipc_colours(),
+    na.value = "transparent", 
+    name = "GAM Prevalence (%)",
+    limits = c(0, 30),  
+    breaks = c(0, 5, 10, 15, 30),
+    labels = c("<5.0", "5.0-9.9", "10.0-14.9", "15.0-29.9", "≥30.0"),
+    values = scales::rescale(c(0, 5, 10, 15, 30), from = c(0, 30))
+  ) +
   geom_sf(
     data = st_cast(karamoja_admn4, "MULTILINESTRING"), 
     linewidth = 0.2, 
     color = "grey"
+  ) +
+  labs(
+    title = "A surface map of the predicted prevalence of GAM by WHZ"
+  ) +
+  theme(
+    plot.title = element_text(colour = "#706E6D", size = 10)
   ) +
   theme_void()
 
@@ -151,7 +165,7 @@ interp |>
 
 ### -------------------------------------------- Predicting standard errors ----
 
-## TO BE ADDED 
+## TO BE ADDED... 
 
 ### ------------------------------------------------------- Get areal means ----
 #### At district level (ADM2_EN) ----
@@ -167,7 +181,15 @@ pred_mean_admn2 <- krige(
 ##### Cloropleth map of the mean predicted prevalence at district level ----
 ggplot() +
   geom_sf(data = pred_mean_admn2, aes(fill = var1.pred), color = "black", size = 0.2) +
-  scale_fill_gradientn(colors = custom_colors) +
+  scale_fill_gradientn(
+    colours = ipc_colours(),
+    na.value = "transparent", 
+    name = "GAM Prevalence (%)",
+    limits = c(0, 30),  
+    breaks = c(0, 5, 10, 15, 30),
+    labels = c("<5.0", "5.0-9.9", "10.0-14.9", "15.0-29.9", "≥30.0"),
+    values = scales::rescale(c(0, 5, 10, 15, 30), from = c(0, 30))
+  ) +
     geom_sf(
       data = karamoja_admn2,
       fill = NA, 
@@ -182,12 +204,11 @@ ggplot() +
     size = 3,
   ) +
   labs(
-    title = "Mean predicted prevalence at district level",
+    title = "Mean predicted prevalence of GAM by WFHZ at district level",
     fill = "Predicted Values"
   ) +
   theme(
-    plot.title = element_text(size = 10),
-    plot.subtitle = element_text(size = 9, colour = "#706E6D")
+    plot.title = element_text(size = 9)
   ) +
   theme_void()
 
@@ -238,7 +259,15 @@ ggplot() +
     color = "black", 
     size = 0.2
   ) +
-  scale_fill_gradientn(colors = custom_colors) +
+  scale_fill_gradientn(
+    colours = ipc_colours(),
+    na.value = "transparent", 
+    name = "GAM Prevalence (%)",
+    limits = c(0, 30),  
+    breaks = c(0, 5, 10, 15, 30),  # Define range breakpoints
+    labels = c("<5.0", "5.0-9.9", "10.0-14.9", "15.0-29.9", "≥30.0"),
+    values = scales::rescale(c(0, 5, 10, 15, 30), from = c(0, 30))
+  ) +
   geom_sf(
     data = karamoja_admn4, 
     fill = NA, 
@@ -258,12 +287,10 @@ ggplot() +
     size = 3,
   ) +
   labs(
-    title = "Mean predicted prevalence at county level",
-    fill = "Predicted Values"
+    title = "Mean predicted prevalence of GAM by WFHZ at county level"
   ) +
   theme(
-    plot.title = element_text(size = 10),
-    plot.subtitle = element_text(size = 9, colour = "#706E6D")
+    plot.title = element_text(size = 8)
   ) +
   theme_void()
 
