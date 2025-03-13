@@ -93,7 +93,7 @@ ggplot(data = karamoja_admn2) +
     aes(color = raw_cat)
   ) +
   scale_color_manual(
-    values = ipc_colours(indicator = "wfhz"), 
+    values = ipc_colours(indicator = "wfhz", .map_type = "static"), 
     name = "Raw rates" 
   ) +
   theme_void() +
@@ -123,7 +123,7 @@ ggplot(data = karamoja_admn2) +
     aes(color = sebsr_cat)
   ) +
   scale_color_manual(
-    values = ipc_colours(indicator = "wfhz"), 
+    values = ipc_colours(indicator = "wfhz", .map_type = "static"), 
     name = "Smoothed rates"
   ) +
   theme_void() + 
@@ -226,7 +226,7 @@ ggplot(data = karamoja_admn2) +
     aes(color = raw_cat)
   ) +
   scale_color_manual(
-    values = ipc_colours("muac"), 
+    values = ipc_colours(indicator = "muac", .map_type = "static"), 
     name = "Raw rates" 
   ) +
   theme_void() +
@@ -256,7 +256,7 @@ ggplot(data = karamoja_admn2) +
     aes(color = sebsr_cat)
   ) +
   scale_color_manual(
-    values = ipc_colours("muac"), 
+    values = ipc_colours("muac", .map_type = "static"), 
     name = "Smoothed rates"
   ) +
   theme_void() + 
