@@ -8,6 +8,10 @@ library(spdep)
 library(gstat)
 library(stars)
 library(ggplot2)
+library(mapview)
+
+## ---- Load utility functions -------------------------------------------------
+source("R/utils.R")
 
 ## ---- Read in input data and set Coordinate Reference System -----------------
 source("scripts/read-in-input-data.R")
@@ -25,4 +29,4 @@ source("scripts/shapefiles.R")
 source("scripts/wrangle-spatial-attributes.R")
 
 ## ---- Run spatial interpolation ----------------------------------------------
-source("scripts/interpolate.R")
+source("scripts/interpolate-krige-wfhz.R")

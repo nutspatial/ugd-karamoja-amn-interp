@@ -4,7 +4,7 @@
 
 
 ## ---- Set WFHZ data as an `sf` object  ---------------------------------------
-wfhz_data <- wfhz_data |> 
+wfhz <- wfhz_data |> 
   filter(!flag_wfhz == 1) |> 
   select(enumArea, X, Y, gam) |> 
   filter(!is.na(X)) |> 
@@ -15,7 +15,7 @@ wfhz_data <- wfhz_data |>
   st_set_crs(value = "EPSG:4326")
 
 ## ---- Workflow to calculate Spatial Empirical Bayesian Rates (SEBSR) ---------
-dissolved_wfhz_data <- wfhz_data |> 
+aggr_wfhz <- wfhz |> 
   mutate(
     long_x = st_coordinates(geometry)[, 1], 
     lati_y = st_coordinates(geometry)[, 2]
@@ -34,10 +34,10 @@ dissolved_wfhz_data <- wfhz_data |>
     dim = "XY", 
     crs = "EPSG:4326"
   ) |> 
-  st_transform(crs = st_crs(karamoja_admn3))
+  st_transform(crs = st_crs(karamoja_admn2))
 
 ### -------------------------- Calculate spatial weights: K-Near Neighbours ----
-sp_wts_wfhz <- dissolved_wfhz_data |> 
+sp_wts_wfhz <- aggr_wfhz |> 
   knearneigh(
     k = 4,
     longlat = TRUE,
@@ -47,45 +47,37 @@ sp_wts_wfhz <- dissolved_wfhz_data |>
 
 ### ------------------------------------------------------- Calculate rates ----
 sebsr_wfhz <- EBlocal(
-  ri = dissolved_wfhz_data$cases,
-  ni = dissolved_wfhz_data$pop,
+  ri = aggr_wfhz$cases,
+  ni = aggr_wfhz$pop,
   nb = sp_wts_wfhz
 )
 
 #### Bind data.frames -----
-wrangled_wfhz <- cbind(dissolved_wfhz_data, sebsr_wfhz)
+wrangled_wfhz <- cbind(aggr_wfhz, sebsr_wfhz)
 
 ## ---- Map rates --------------------------------------------------------------
-
 ### ----------------- Create a categorical variable with custom breakpoints ----
 wrangled_wfhz <- wrangled_wfhz |> 
   mutate(
+    est = est * 100,
+    raw = raw * 100,
     est = ifelse(est == "NaN", 0, est),
     raw_cat = cut(
       x = raw, 
-      breaks = c(-Inf, 0.05, 0.09, 0.149, 0.299, Inf),
-      labels = c("<0.05", "0.05-0.09", "0.10-0.149", "0.15-0.299", "≥0.3"),
+      breaks = c(-Inf, 5.0, 9.9, 14.9, 29.9, Inf),
+      labels = c("<5.0%", "5.0-9.9%", "10.0-14.9%", "15.0-29.9%", "≥30.0%"),
       include.lowest = TRUE
     ), 
     sebsr_cat = cut(
       x = est, 
-      breaks = c(-Inf, 0.05, 0.09, 0.149, 0.299, Inf),
-      labels = c("<0.05", "0.05-0.09", "0.10-0.149", "0.15-0.299", "≥0.3"),
+      breaks = c(-Inf, 5.0, 9.9, 14.9, 29.9, Inf),
+      labels = c("<5.0%", "5.0-9.9%", "10.0-14.9%", "15.0-29.9%", "≥30.0%"),
       include.lowest = TRUE
     )
   )
 
-### ----------------------------------------------------------- Color-codes ----
-custom_colors <- c(
-  "<0.05" = "#40E0D0",  
-  "0.05-0.09" = "#DFFF00",
-  "0.10-0.149" = "#FFBF00",
-  "0.15-0.299" = "#FF7F50",
-  "≥0.3" = "#f03b20"
-)
-
 #### ------------------------------------------------------- Plot raw rates ----
-ggplot(data = karamoja_admn3) +
+ggplot(data = karamoja_admn2) +
   geom_sf(
     fill = "white",
     color = "#3F4342",
@@ -101,7 +93,7 @@ ggplot(data = karamoja_admn3) +
     aes(color = raw_cat)
   ) +
   scale_color_manual(
-    values = custom_colors, 
+    values = ipc_colours(indicator = "wfhz", .map_type = "static"), 
     name = "Raw rates" 
   ) +
   theme_void() +
@@ -115,7 +107,7 @@ ggplot(data = karamoja_admn3) +
   )
 
 ### ------------------------------------------------------------ Plot SEBSR ----
-ggplot(data = karamoja_admn3) +
+ggplot(data = karamoja_admn2) +
   geom_sf(
     fill = "white", 
     color = "#3F4342", 
@@ -131,7 +123,7 @@ ggplot(data = karamoja_admn3) +
     aes(color = sebsr_cat)
   ) +
   scale_color_manual(
-    values = custom_colors, 
+    values = ipc_colours(indicator = "wfhz", .map_type = "static"), 
     name = "Smoothed rates"
   ) +
   theme_void() + 
@@ -145,7 +137,7 @@ ggplot(data = karamoja_admn3) +
   )
 
 ## ---- Set data as an `sf` object and reproject CRS (MUAC) --------------------
-muac_data <- muac_data |> 
+muac <- muac_data |> 
   filter(!flag_mfaz == 1) |> 
   select(enumArea, X, Y, gam) |> 
   filter(!is.na(X)) |> 
@@ -156,7 +148,7 @@ muac_data <- muac_data |>
   st_set_crs(value = "EPSG:4326")
 
 ## ---- Workflow to calculate Spatial Empirical Bayesian Rates (SEBSR) ---------
-dissolved_muac_data <- muac_data |> 
+aggr_muac <- muac |> 
   mutate(
     long_x = st_coordinates(geometry)[, 1], 
     lati_y = st_coordinates(geometry)[, 2]
@@ -175,10 +167,10 @@ dissolved_muac_data <- muac_data |>
     dim = "XY", 
     crs = "EPSG:4326"
   ) |> 
-  st_transform(crs = st_crs(karamoja_admn3))
+  st_transform(crs = st_crs(karamoja_admn2))
 
 ### -------------------------- Calculate spatial weights: K-Near Neighbours ----
-sp_wts_muac <- dissolved_muac_data |> 
+sp_wts_muac <- aggr_muac |> 
   knearneigh(
     k = 4, 
     longlat = TRUE,
@@ -188,13 +180,13 @@ sp_wts_muac <- dissolved_muac_data |>
 
 ### ------------------------------------------------------- Calculate rates ----
 sebsr_muac <- EBlocal(
-  ri = dissolved_muac_data$cases ,
-  ni = dissolved_muac_data$pop,
+  ri = aggr_muac$cases ,
+  ni = aggr_muac$pop,
   nb = sp_wts_muac
 )
 
 #### Bind data.frames -----
-wrangled_muac <- cbind(dissolved_muac_data, sebsr_muac)
+wrangled_muac <- cbind(aggr_muac, sebsr_muac)
 
 ## ---- Map rates --------------------------------------------------------------
 ### --------------------------------------------------------- Map raw rates ----
@@ -217,16 +209,8 @@ wrangled_muac <- wrangled_muac |>
     )
   )
 
-#### Color-codes ----
-custom_colors <- c(
-  "<0.05" = "#40E0D0",  
-  "0.05-0.09" = "#DFFF00",
-  "0.10-0.149" = "#FFBF00",
-  "≥0.15" = "#f03b20"
-)
-
 #### Plot raw rates ----
-ggplot(data = karamoja_admn3) +
+ggplot(data = karamoja_admn2) +
   geom_sf(
     fill = "white",
     color = "#3F4342",
@@ -242,7 +226,7 @@ ggplot(data = karamoja_admn3) +
     aes(color = raw_cat)
   ) +
   scale_color_manual(
-    values = custom_colors, 
+    values = ipc_colours(indicator = "muac", .map_type = "static"), 
     name = "Raw rates" 
   ) +
   theme_void() +
@@ -256,7 +240,7 @@ ggplot(data = karamoja_admn3) +
   )
 
 #### Plot SEBSR ----
-ggplot(data = karamoja_admn3) +
+ggplot(data = karamoja_admn2) +
   geom_sf(
     fill = "white", 
     color = "#3F4342",
@@ -272,7 +256,7 @@ ggplot(data = karamoja_admn3) +
     aes(color = sebsr_cat)
   ) +
   scale_color_manual(
-    values = custom_colors, 
+    values = ipc_colours("muac", .map_type = "static"), 
     name = "Smoothed rates"
   ) +
   theme_void() + 
