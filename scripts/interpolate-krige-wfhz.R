@@ -27,8 +27,8 @@ exp_variogram_wfhz <- variogram(
 ggplot(exp_variogram_wfhz, aes(x = dist, y = gamma)) +
   geom_point(color = "#566573") +
   scale_x_continuous(
-    limits = c(0, 1.055 * max(v0$dist)),
-    breaks = seq(0, 1.055 * max(v0$dist), length.out = 6)
+    limits = c(0, 1.055 * max(exp_variogram_wfhz$dist)),
+    breaks = seq(0, 1.055 * max(exp_variogram_wfhz$dist), length.out = 6)
   ) +
   labs(
     x = "Distance (h)",
