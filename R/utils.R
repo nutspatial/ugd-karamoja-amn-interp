@@ -15,16 +15,6 @@ ipc_colours <- function(
   
   if (.map_type == "static") {
     switch (indicator,
-      # Color codes for GAM by MUAC-based thresholds ----
-      "muac" = {
-        x <- c(
-          "<0.05" = "#CDFACD",  
-          "0.05-0.09" = "#FAE61E",
-          "0.10-0.149" = "#E67800",
-          "≥0.15" = "#640000"
-        )
-        x
-      }, 
       # Color codes for GAM by WFHZ-based thresholds ----
       "wfhz" = {
         x <- c(
@@ -33,6 +23,16 @@ ipc_colours <- function(
           "10.0-14.9%" = "#E67800",
           "15.0-29.9%" = "#C80000",
           "≥30.0%" = "#640000"
+        )
+        x
+      },
+      # Color codes for GAM by MUAC-based thresholds ----
+      "muac" = {
+        x <- c(
+          "<0.05" = "#CDFACD",  
+          "0.05-0.09" = "#FAE61E",
+          "0.10-0.149" = "#E67800",
+          "≥0.15" = "#640000"
         )
         x
       }
