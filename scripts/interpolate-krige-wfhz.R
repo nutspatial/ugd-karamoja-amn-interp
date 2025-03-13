@@ -1,5 +1,5 @@
 ################################################################################
-#                      PREDICT GAM TO UNSURVEYED LOCATIONS                     #
+#                                INTERPOLATE                                   #
 ################################################################################
 
 ## ---- Create a surface to interpolate on -------------------------------------
@@ -16,7 +16,7 @@ dist_max <- max(dist(st_coordinates(wrangled_wfhz))) / 2
 dist_min <- min(dist(st_coordinates(wrangled_wfhz)))
 
 #### Experimental variogram ----
-v0 <- variogram(
+exp_variogram_wfhz <- variogram(
   object = est ~ 1,
   data = wrangled_wfhz,
   cutoff = dist_max,
@@ -24,7 +24,7 @@ v0 <- variogram(
 )
 
 #### Plot experimental variogram ----
-ggplot(v0, aes(x = dist, y = gamma)) +
+ggplot(exp_variogram_wfhz, aes(x = dist, y = gamma)) +
   geom_point(color = "#566573") +
   scale_x_continuous(
     limits = c(0, 1.055 * max(v0$dist)), 
@@ -36,23 +36,27 @@ ggplot(v0, aes(x = dist, y = gamma)) +
   )
 
 #### Fit variogram model ----
-v <- fit.variogram(
-  object = v0,
+empirical_variogram_wfhz <- fit.variogram(
+  object = exp_variogram_wfhz,
   model = vgm(model = c("Exp", "Sph", "Gau", "Mat"))
 )
 
 #### Plot variogram ----
-v_model <- variogramLine(v, maxdist = max(v0$dist), n = 100)
+v_model <- variogramLine(
+  object = empirical_variogram_wfhz, 
+  maxdist = max(exp_variogram_wfhz$dist), 
+  n = 100
+)
 ggplot() +
   geom_point(
-    data = v0, 
+    data = exp_variogram_wfhz, 
     aes(x = dist, y = gamma), 
     color = "#566573", 
     size = 1.2
   ) +
   scale_x_continuous(
-    limits = c(0, 1.055 * max(v0$dist)), 
-    breaks = seq(0, 1.055 * max(v0$dist), length.out = 6)
+    limits = c(0, 1.055 * max(exp_variogram_wfhz$dist)), 
+    breaks = seq(0, 1.055 * max(exp_variogram_wfhz$dist), length.out = 6)
   ) +
   geom_line(
     data = v_model, 
@@ -69,7 +73,7 @@ ggplot() +
 ### -------------------------------- Cross-validation: leave-one-out method ----
 cv_wfhz <- krige.cv(
   formula = est ~ 1, 
-  model = v,
+  model = empirical_variogram_wfhz,
   locations = wrangled_wfhz, 
   nmin = 3,
   nmax = 4, 
@@ -119,7 +123,7 @@ interp <- krige(
   locations = wrangled_wfhz,
   nmin = 3, 
   nmax = 4,
-  model = v, 
+  model = empirical_variogram_wfhz, 
   newdata = grid
 )
 
@@ -174,7 +178,7 @@ pred_mean_admn2 <- krige(
   locations = wrangled_wfhz,
   nmin = 3, 
   nmax = 4,
-  model = v, 
+  model = empirical_variogram_wfhz, 
   newdata = karamoja_admn2
 )
 
@@ -247,7 +251,7 @@ pred_mean_admn4 <- krige(
   locations = wrangled_wfhz,
   nmin = 3, 
   nmax = 4,
-  model = v, 
+  model = empirical_variogram_wfhz, 
   newdata = karamoja_admn4
 )
 
