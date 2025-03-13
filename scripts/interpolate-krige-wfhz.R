@@ -136,7 +136,7 @@ ggplot() +
     aes(fill = var1.pred, x = x, y = y)
   ) +
   scale_fill_gradientn(
-    colors = ipc_colours(),
+    colors = apply_ipc_colours(),
     na.value = "transparent",
     name = "GAM Prevalence (%)",
     limits = c(0, 30),
@@ -162,7 +162,7 @@ interp |>
   mapview(
     alpha = 1,
     alpha.regions = 0.2,
-    col.regions = ipc_colours(.map_type = "interactive", indicator = "wfhz"),
+    col.regions = apply_ipc_colours(.map_type = "interactive", indicator = "wfhz"),
     na.color = "transparent",
     trim = TRUE
   )
@@ -186,7 +186,7 @@ pred_mean_admn2 <- krige(
 ggplot() +
   geom_sf(data = pred_mean_admn2, aes(fill = var1.pred), color = "black", size = 0.2) +
   scale_fill_gradientn(
-    colours = ipc_colours(),
+    colours = apply_ipc_colours(),
     na.value = "transparent",
     name = "GAM Prevalence (%)",
     limits = c(0, 30),
@@ -264,7 +264,7 @@ ggplot() +
     size = 0.2
   ) +
   scale_fill_gradientn(
-    colours = ipc_colours(),
+    colours = apply_ipc_colours(),
     na.value = "transparent",
     name = "GAM Prevalence (%)",
     limits = c(0, 30),

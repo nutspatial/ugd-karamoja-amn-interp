@@ -5,7 +5,7 @@
 #'
 #'
 
-ipc_colours <- function(
+apply_ipc_colours <- function(
     .map_type = c("static", "interactive"),
     indicator = c("wfhz", "muac")) {
   
