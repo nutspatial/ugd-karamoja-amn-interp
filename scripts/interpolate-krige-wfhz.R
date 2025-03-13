@@ -3,9 +3,9 @@
 ################################################################################
 
 ## ---- Create a surface to interpolate on -------------------------------------
-grid <- karamoja_admn4 |> 
-  st_bbox() |> 
-  st_as_stars(dx = 2000) |> 
+grid <- karamoja_admn4 |>
+  st_bbox() |>
+  st_as_stars(dx = 2000) |>
   st_crop(karamoja_admn4)
 
 ## ---- Fit a variogram model --------------------------------------------------
@@ -27,11 +27,11 @@ exp_variogram_wfhz <- variogram(
 ggplot(exp_variogram_wfhz, aes(x = dist, y = gamma)) +
   geom_point(color = "#566573") +
   scale_x_continuous(
-    limits = c(0, 1.055 * max(v0$dist)), 
+    limits = c(0, 1.055 * max(v0$dist)),
     breaks = seq(0, 1.055 * max(v0$dist), length.out = 6)
   ) +
   labs(
-    x = "Distance (h)", 
+    x = "Distance (h)",
     y = expression(gamma(h))
   )
 
@@ -43,25 +43,25 @@ empirical_variogram_wfhz <- fit.variogram(
 
 #### Plot variogram ----
 v_model <- variogramLine(
-  object = empirical_variogram_wfhz, 
-  maxdist = max(exp_variogram_wfhz$dist), 
+  object = empirical_variogram_wfhz,
+  maxdist = max(exp_variogram_wfhz$dist),
   n = 100
 )
 ggplot() +
   geom_point(
-    data = exp_variogram_wfhz, 
-    aes(x = dist, y = gamma), 
-    color = "#566573", 
+    data = exp_variogram_wfhz,
+    aes(x = dist, y = gamma),
+    color = "#566573",
     size = 1.2
   ) +
   scale_x_continuous(
-    limits = c(0, 1.055 * max(exp_variogram_wfhz$dist)), 
+    limits = c(0, 1.055 * max(exp_variogram_wfhz$dist)),
     breaks = seq(0, 1.055 * max(exp_variogram_wfhz$dist), length.out = 6)
   ) +
   geom_line(
-    data = v_model, 
-    aes(x = dist, y = gamma), 
-    color = "#D15310", 
+    data = v_model,
+    aes(x = dist, y = gamma),
+    color = "#D15310",
     linewidth = 0.6
   ) +
   labs(
@@ -72,17 +72,17 @@ ggplot() +
 
 ### -------------------------------- Cross-validation: leave-one-out method ----
 cv_wfhz <- krige.cv(
-  formula = est ~ 1, 
+  formula = est ~ 1,
   model = empirical_variogram_wfhz,
-  locations = wrangled_wfhz, 
+  locations = wrangled_wfhz,
   nmin = 3,
-  nmax = 4, 
+  nmax = 4,
   maxdist = 9000
 )
 
 ### ------------------------------------------- Cross-validation statistics ----
-cv_wfhz_stats <- cv_wfhz |> 
-  as_tibble() |> 
+cv_wfhz_stats <- cv_wfhz |>
+  as_tibble() |>
   summarise(
     mean_error = mean(residual, na.rm = TRUE), ## be as close to zero as possible
     MSPE = mean(residual^2, na.rm = TRUE), ## Ideally small
@@ -101,11 +101,11 @@ ggplot(cv_wfhz, aes(x = var1.pred, y = observed)) +
     linewidth = 0.3
   ) +
   geom_smooth(
-    method = "lm", 
-    color = "blue", 
-    linewidth = 0.9, 
+    method = "lm",
+    color = "blue",
+    linewidth = 0.9,
     se = FALSE
-  ) + 
+  ) +
   theme_minimal() +
   labs(
     title = "A scatterplot of observed values against predicted",
@@ -119,34 +119,34 @@ ggplot(cv_wfhz, aes(x = var1.pred, y = observed)) +
 
 ## ---- Interpolate ------------------------------------------------------------
 interp <- krige(
-  formula = est ~ 1, 
+  formula = est ~ 1,
   locations = wrangled_wfhz,
-  nmin = 3, 
+  nmin = 3,
   nmax = 4,
-  model = empirical_variogram_wfhz, 
+  model = empirical_variogram_wfhz,
   newdata = grid
 )
 
 ### ------------------------------------------------- Visualize map surface ----
 
 #### Static map ----
-ggplot() + 
+ggplot() +
   geom_stars(
-    data = interp, 
+    data = interp,
     aes(fill = var1.pred, x = x, y = y)
-  ) + 
+  ) +
   scale_fill_gradientn(
     colors = ipc_colours(),
-    na.value = "transparent", 
+    na.value = "transparent",
     name = "GAM Prevalence (%)",
-    limits = c(0, 30),  
+    limits = c(0, 30),
     breaks = c(0, 5, 10, 15, 30),
     labels = c("<5.0", "5.0-9.9", "10.0-14.9", "15.0-29.9", "≥30.0"),
     values = scales::rescale(c(0, 5, 10, 15, 30), from = c(0, 30))
   ) +
   geom_sf(
-    data = st_cast(karamoja_admn4, "MULTILINESTRING"), 
-    linewidth = 0.2, 
+    data = st_cast(karamoja_admn4, "MULTILINESTRING"),
+    linewidth = 0.2,
     color = "grey"
   ) +
   labs(
@@ -158,27 +158,27 @@ ggplot() +
   theme_void()
 
 ### Interactive map ----
-interp |> 
+interp |>
   mapview(
     alpha = 1,
-    alpha.regions = 0.2, 
-    col.regions = ipc_colours(.map_type = "interactive", indicator = "wfhz"), 
-    na.color = "transparent",  
-    trim = TRUE 
+    alpha.regions = 0.2,
+    col.regions = ipc_colours(.map_type = "interactive", indicator = "wfhz"),
+    na.color = "transparent",
+    trim = TRUE
   )
 
 ### -------------------------------------------- Predicting standard errors ----
 
-## TO BE ADDED... 
+## TO BE ADDED...
 
 ### ------------------------------------------------------- Get areal means ----
 #### At district level (ADM2_EN) ----
 pred_mean_admn2 <- krige(
-  formula = est ~ 1, 
+  formula = est ~ 1,
   locations = wrangled_wfhz,
-  nmin = 3, 
+  nmin = 3,
   nmax = 4,
-  model = empirical_variogram_wfhz, 
+  model = empirical_variogram_wfhz,
   newdata = karamoja_admn2
 )
 
@@ -187,24 +187,24 @@ ggplot() +
   geom_sf(data = pred_mean_admn2, aes(fill = var1.pred), color = "black", size = 0.2) +
   scale_fill_gradientn(
     colours = ipc_colours(),
-    na.value = "transparent", 
+    na.value = "transparent",
     name = "GAM Prevalence (%)",
-    limits = c(0, 30),  
+    limits = c(0, 30),
     breaks = c(0, 5, 10, 15, 30),
     labels = c("<5.0", "5.0-9.9", "10.0-14.9", "15.0-29.9", "≥30.0"),
     values = scales::rescale(c(0, 5, 10, 15, 30), from = c(0, 30))
   ) +
-    geom_sf(
-      data = karamoja_admn2,
-      fill = NA, 
-      color = "#F2F3F4",
-      size = 0.8
-    ) +
+  geom_sf(
+    data = karamoja_admn2,
+    fill = NA,
+    color = "#F2F3F4",
+    size = 0.8
+  ) +
   geom_sf_text(
     data = karamoja_admn2,
     mapping = aes(label = factor(ADM2_EN)),
-    show.legend = TRUE, 
-    color = "#34495E", 
+    show.legend = TRUE,
+    color = "#34495E",
     size = 3,
   ) +
   labs(
@@ -217,41 +217,41 @@ ggplot() +
   theme_void()
 
 ##### Get minimum and maximum predicted prevalence values by district -----
-min_max <- interp |> 
-  st_as_sf() |> 
+min_max <- interp |>
+  st_as_sf() |>
   st_join(karamoja_admn2, left = FALSE) |> # each grid cell to a polygon
-  group_by(ADM2_EN) |> 
+  group_by(ADM2_EN) |>
   summarise(
     min_value = min(var1.pred, na.rm = TRUE),
     max_value = max(var1.pred, na.rm = TRUE)
   )
 
 ##### Compare mean predicted prevalence against original survey results -----
-pred_vs_original <- wfhz_data |> 
-  rename(cluster = enumArea) |> 
+pred_vs_original <- wfhz_data |>
+  rename(cluster = enumArea) |>
   mw_estimate_prevalence_wfhz(
-    wt = NULL, 
+    wt = NULL,
     edema = ChildOedema,
     .by = district
-  ) |> 
-  select(district, gam_p) |> 
-  arrange(factor(district)) |> 
+  ) |>
+  select(district, gam_p) |>
+  arrange(factor(district)) |>
   mutate(
     survey = gam_p * 100,
     interp = pred_mean_admn2$var1.pred,
-    bias = interp - survey, 
-    min_interp = min_max$min_value, 
+    bias = interp - survey,
+    min_interp = min_max$min_value,
     max_interp = min_max$max_value
-  ) |> 
+  ) |>
   select(-gam_p)
 
 #### At county level (ADM4_EN) ----
 pred_mean_admn4 <- krige(
-  formula = est ~ 1, 
+  formula = est ~ 1,
   locations = wrangled_wfhz,
-  nmin = 3, 
+  nmin = 3,
   nmax = 4,
-  model = empirical_variogram_wfhz, 
+  model = empirical_variogram_wfhz,
   newdata = karamoja_admn4
 )
 
@@ -259,35 +259,35 @@ pred_mean_admn4 <- krige(
 ggplot() +
   geom_sf(
     data = pred_mean_admn4,
-    aes(fill = var1.pred), 
-    color = "black", 
+    aes(fill = var1.pred),
+    color = "black",
     size = 0.2
   ) +
   scale_fill_gradientn(
     colours = ipc_colours(),
-    na.value = "transparent", 
+    na.value = "transparent",
     name = "GAM Prevalence (%)",
-    limits = c(0, 30),  
-    breaks = c(0, 5, 10, 15, 30),  # Define range breakpoints
+    limits = c(0, 30),
+    breaks = c(0, 5, 10, 15, 30), # Define range breakpoints
     labels = c("<5.0", "5.0-9.9", "10.0-14.9", "15.0-29.9", "≥30.0"),
     values = scales::rescale(c(0, 5, 10, 15, 30), from = c(0, 30))
   ) +
   geom_sf(
-    data = karamoja_admn4, 
-    fill = NA, 
+    data = karamoja_admn4,
+    fill = NA,
     color = "#F2F3F4"
   ) +
   geom_sf(
     data = karamoja_admn2,
-    fill = NA, 
-    color = "#3F4342", 
+    fill = NA,
+    color = "#3F4342",
     size = 0.8
   ) +
   geom_sf_text(
     data = karamoja_admn2,
     mapping = aes(label = factor(ADM2_EN)),
-    show.legend = TRUE, 
-    color = "#34495E", 
+    show.legend = TRUE,
+    color = "#34495E",
     size = 3,
   ) +
   labs(

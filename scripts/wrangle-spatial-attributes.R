@@ -4,45 +4,45 @@
 
 
 ## ---- Set WFHZ data as an `sf` object  ---------------------------------------
-wfhz <- wfhz_data |> 
-  filter(!flag_wfhz == 1) |> 
-  select(enumArea, X, Y, gam) |> 
-  filter(!is.na(X)) |> 
+wfhz <- wfhz_data |>
+  filter(!flag_wfhz == 1) |>
+  select(enumArea, X, Y, gam) |>
+  filter(!is.na(X)) |>
   st_as_sf(
     coords = c("X", "Y"),
     dim = "XY"
-  ) |> 
+  ) |>
   st_set_crs(value = "EPSG:4326")
 
 ## ---- Workflow to calculate Spatial Empirical Bayesian Rates (SEBSR) ---------
-aggr_wfhz <- wfhz |> 
+aggr_wfhz <- wfhz |>
   mutate(
-    long_x = st_coordinates(geometry)[, 1], 
+    long_x = st_coordinates(geometry)[, 1],
     lati_y = st_coordinates(geometry)[, 2]
-  ) |>  
-  group_by(enumArea) |> 
+  ) |>
+  group_by(enumArea) |>
   summarise(
     cases = sum(gam, na.rm = TRUE),
     pop = n(),
     X = mean(long_x, na.rm = TRUE),
     Y = mean(lati_y, na.rm = TRUE)
-  ) |> 
-  as_tibble() |> 
-  select(-geometry) |> 
+  ) |>
+  as_tibble() |>
+  select(-geometry) |>
   st_as_sf(
     coords = c("X", "Y"),
-    dim = "XY", 
+    dim = "XY",
     crs = "EPSG:4326"
-  ) |> 
+  ) |>
   st_transform(crs = st_crs(karamoja_admn2))
 
 ### -------------------------- Calculate spatial weights: K-Near Neighbours ----
-sp_wts_wfhz <- aggr_wfhz |> 
+sp_wts_wfhz <- aggr_wfhz |>
   knearneigh(
     k = 4,
     longlat = TRUE,
     use_kd_tree = TRUE
-  ) |> 
+  ) |>
   knn2nb(row.names = NULL)
 
 ### ------------------------------------------------------- Calculate rates ----
@@ -57,19 +57,19 @@ wrangled_wfhz <- cbind(aggr_wfhz, sebsr_wfhz)
 
 ## ---- Map rates --------------------------------------------------------------
 ### ----------------- Create a categorical variable with custom breakpoints ----
-wrangled_wfhz <- wrangled_wfhz |> 
+wrangled_wfhz <- wrangled_wfhz |>
   mutate(
     est = est * 100,
     raw = raw * 100,
     est = ifelse(est == "NaN", 0, est),
     raw_cat = cut(
-      x = raw, 
+      x = raw,
       breaks = c(-Inf, 5.0, 9.9, 14.9, 29.9, Inf),
       labels = c("<5.0%", "5.0-9.9%", "10.0-14.9%", "15.0-29.9%", "≥30.0%"),
       include.lowest = TRUE
-    ), 
+    ),
     sebsr_cat = cut(
-      x = est, 
+      x = est,
       breaks = c(-Inf, 5.0, 9.9, 14.9, 29.9, Inf),
       labels = c("<5.0%", "5.0-9.9%", "10.0-14.9%", "15.0-29.9%", "≥30.0%"),
       include.lowest = TRUE
@@ -84,8 +84,8 @@ ggplot(data = karamoja_admn2) +
     size = 0.8
   ) +
   geom_sf(
-    data = karamoja_admn4, 
-    fill = NA, 
+    data = karamoja_admn4,
+    fill = NA,
     color = "#F2F3F4"
   ) +
   geom_sf(
@@ -93,8 +93,8 @@ ggplot(data = karamoja_admn2) +
     aes(color = raw_cat)
   ) +
   scale_color_manual(
-    values = ipc_colours(indicator = "wfhz", .map_type = "static"), 
-    name = "Raw rates" 
+    values = ipc_colours(indicator = "wfhz", .map_type = "static"),
+    name = "Raw rates"
   ) +
   theme_void() +
   labs(
@@ -109,13 +109,13 @@ ggplot(data = karamoja_admn2) +
 ### ------------------------------------------------------------ Plot SEBSR ----
 ggplot(data = karamoja_admn2) +
   geom_sf(
-    fill = "white", 
-    color = "#3F4342", 
+    fill = "white",
+    color = "#3F4342",
     size = 0.8
   ) +
   geom_sf(
-    data = karamoja_admn4, 
-    fill = NA, 
+    data = karamoja_admn4,
+    fill = NA,
     color = "#F2F3F4"
   ) +
   geom_sf(
@@ -123,10 +123,10 @@ ggplot(data = karamoja_admn2) +
     aes(color = sebsr_cat)
   ) +
   scale_color_manual(
-    values = ipc_colours(indicator = "wfhz", .map_type = "static"), 
+    values = ipc_colours(indicator = "wfhz", .map_type = "static"),
     name = "Smoothed rates"
   ) +
-  theme_void() + 
+  theme_void() +
   labs(
     title = "Spatial distribution of smoothed GAM rates by sampling points across the Karamoja region",
     subtitle = "Rates smoothed using Spatial Empirical Bayesian"
@@ -137,50 +137,50 @@ ggplot(data = karamoja_admn2) +
   )
 
 ## ---- Set data as an `sf` object and reproject CRS (MUAC) --------------------
-muac <- muac_data |> 
-  filter(!flag_mfaz == 1) |> 
-  select(enumArea, X, Y, gam) |> 
-  filter(!is.na(X)) |> 
+muac <- muac_data |>
+  filter(!flag_mfaz == 1) |>
+  select(enumArea, X, Y, gam) |>
+  filter(!is.na(X)) |>
   st_as_sf(
     coords = c("X", "Y"),
     dim = "XY"
-  ) |> 
+  ) |>
   st_set_crs(value = "EPSG:4326")
 
 ## ---- Workflow to calculate Spatial Empirical Bayesian Rates (SEBSR) ---------
-aggr_muac <- muac |> 
+aggr_muac <- muac |>
   mutate(
-    long_x = st_coordinates(geometry)[, 1], 
+    long_x = st_coordinates(geometry)[, 1],
     lati_y = st_coordinates(geometry)[, 2]
-  ) |>  
-  group_by(enumArea) |> 
+  ) |>
+  group_by(enumArea) |>
   summarise(
     cases = sum(gam, na.rm = TRUE),
     pop = n(),
     X = mean(long_x, na.rm = TRUE),
     Y = mean(lati_y, na.rm = TRUE)
-  ) |> 
-  as_tibble() |> 
-  select(-geometry) |> 
+  ) |>
+  as_tibble() |>
+  select(-geometry) |>
   st_as_sf(
     coords = c("X", "Y"),
-    dim = "XY", 
+    dim = "XY",
     crs = "EPSG:4326"
-  ) |> 
+  ) |>
   st_transform(crs = st_crs(karamoja_admn2))
 
 ### -------------------------- Calculate spatial weights: K-Near Neighbours ----
-sp_wts_muac <- aggr_muac |> 
+sp_wts_muac <- aggr_muac |>
   knearneigh(
-    k = 4, 
+    k = 4,
     longlat = TRUE,
     use_kd_tree = TRUE
-  ) |> 
+  ) |>
   knn2nb(row.names = NULL)
 
 ### ------------------------------------------------------- Calculate rates ----
 sebsr_muac <- EBlocal(
-  ri = aggr_muac$cases ,
+  ri = aggr_muac$cases,
   ni = aggr_muac$pop,
   nb = sp_wts_muac
 )
@@ -192,7 +192,7 @@ wrangled_muac <- cbind(aggr_muac, sebsr_muac)
 ### --------------------------------------------------------- Map raw rates ----
 
 #### Create a categorical variable with custom breakpoints ----
-wrangled_muac <- wrangled_muac |> 
+wrangled_muac <- wrangled_muac |>
   mutate(
     est = ifelse(est == "NaN", 0, est),
     sebsr_cat = cut(
@@ -200,9 +200,9 @@ wrangled_muac <- wrangled_muac |>
       breaks = c(-Inf, 0.05, 0.09, 0.149, Inf),
       labels = c("<0.05", "0.05-0.09", "0.10-0.149", "≥0.15"),
       include.lowest = TRUE
-    ), 
+    ),
     raw_cat = cut(
-      x = raw, 
+      x = raw,
       breaks = c(-Inf, 0.05, 0.09, 0.149, Inf),
       labels = c("<0.05", "0.05-0.09", "0.10-0.149", "≥0.15"),
       include.lowest = TRUE
@@ -217,17 +217,17 @@ ggplot(data = karamoja_admn2) +
     size = 0.8
   ) +
   geom_sf(
-    data = karamoja_admn4, 
-    fill = NA, 
+    data = karamoja_admn4,
+    fill = NA,
     color = "#F2F3F4"
   ) +
   geom_sf(
-    data = wrangled_muac, 
+    data = wrangled_muac,
     aes(color = raw_cat)
   ) +
   scale_color_manual(
-    values = ipc_colours(indicator = "muac", .map_type = "static"), 
-    name = "Raw rates" 
+    values = ipc_colours(indicator = "muac", .map_type = "static"),
+    name = "Raw rates"
   ) +
   theme_void() +
   labs(
@@ -242,24 +242,24 @@ ggplot(data = karamoja_admn2) +
 #### Plot SEBSR ----
 ggplot(data = karamoja_admn2) +
   geom_sf(
-    fill = "white", 
+    fill = "white",
     color = "#3F4342",
     size = 0.8
   ) +
   geom_sf(
-    data = karamoja_admn4, 
-    fill = NA, 
+    data = karamoja_admn4,
+    fill = NA,
     color = "#F2F3F4"
   ) +
   geom_sf(
-    data = wrangled_muac, 
+    data = wrangled_muac,
     aes(color = sebsr_cat)
   ) +
   scale_color_manual(
-    values = ipc_colours("muac", .map_type = "static"), 
+    values = ipc_colours("muac", .map_type = "static"),
     name = "Smoothed rates"
   ) +
-  theme_void() + 
+  theme_void() +
   labs(
     title = "Spatial distribution of smoothed GAM rates by sampling points across the Karamoja region",
     subtitle = "Rates smoothed using Spatial Empirical Bayesian"
