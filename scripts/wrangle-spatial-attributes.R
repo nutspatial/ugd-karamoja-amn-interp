@@ -76,15 +76,6 @@ wrangled_wfhz <- wrangled_wfhz |>
     )
   )
 
-### ----------------------------------------------------------- Color-codes ----
-custom_colors <- c(
-  "<5.0%" = "#40E0D0",  
-  "5.0-9.9%" = "#DFFF00",
-  "10.0-14.9%" = "#FFBF00",
-  "15.0-29.9%" = "#FF7F50",
-  "≥30.0%" = "#f03b20"
-)
-
 #### ------------------------------------------------------- Plot raw rates ----
 ggplot(data = karamoja_admn2) +
   geom_sf(
@@ -102,7 +93,7 @@ ggplot(data = karamoja_admn2) +
     aes(color = raw_cat)
   ) +
   scale_color_manual(
-    values = custom_colors, 
+    values = ipc_colours(indicator = "wfhz"), 
     name = "Raw rates" 
   ) +
   theme_void() +
@@ -132,7 +123,7 @@ ggplot(data = karamoja_admn2) +
     aes(color = sebsr_cat)
   ) +
   scale_color_manual(
-    values = custom_colors, 
+    values = ipc_colours(indicator = "wfhz"), 
     name = "Smoothed rates"
   ) +
   theme_void() + 
@@ -218,14 +209,6 @@ wrangled_muac <- wrangled_muac |>
     )
   )
 
-#### Color-codes ----
-custom_colors <- c(
-  "<0.05" = "#40E0D0",  
-  "0.05-0.09" = "#DFFF00",
-  "0.10-0.149" = "#FFBF00",
-  "≥0.15" = "#f03b20"
-)
-
 #### Plot raw rates ----
 ggplot(data = karamoja_admn2) +
   geom_sf(
@@ -243,7 +226,7 @@ ggplot(data = karamoja_admn2) +
     aes(color = raw_cat)
   ) +
   scale_color_manual(
-    values = custom_colors, 
+    values = ipc_colours("muac"), 
     name = "Raw rates" 
   ) +
   theme_void() +
@@ -273,7 +256,7 @@ ggplot(data = karamoja_admn2) +
     aes(color = sebsr_cat)
   ) +
   scale_color_manual(
-    values = custom_colors, 
+    values = ipc_colours("muac"), 
     name = "Smoothed rates"
   ) +
   theme_void() + 
