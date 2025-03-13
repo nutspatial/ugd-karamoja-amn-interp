@@ -9,6 +9,7 @@ library(gstat)
 library(stars)
 library(ggplot2)
 library(mapview)
+library(automap)
 
 ## ---- Load utility functions -------------------------------------------------
 source("R/utils.R")
@@ -30,3 +31,6 @@ source("scripts/wrangle-spatial-attributes.R")
 
 ## ---- Run spatial interpolation ----------------------------------------------
 source("scripts/interpolate-krige-wfhz.R")
+
+## ---- Run automated spatial interpolation with `{automap}` -------------------
+source("scripts/interpolate-krige-wfhz-automap.R")

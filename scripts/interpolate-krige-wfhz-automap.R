@@ -1,87 +1,53 @@
 ################################################################################
-#                                INTERPOLATE                                   #
+#                           INTERPOLATE WITH `{automap}`                       #
 ################################################################################
 
-## ---- Create a surface to interpolate on -------------------------------------
-grid <- karamoja_admn4 |>
-  st_bbox() |>
-  st_as_stars(dx = 2000) |>
-  st_crop(karamoja_admn4)
-
-## ---- Fit a variogram model --------------------------------------------------
-### ------------------------------------------------ Experimental variogram ----
-
-#### Check the maximum and minimum distance between sampling points ----
-dist_max <- max(dist(st_coordinates(wrangled_wfhz))) / 2
-dist_min <- min(dist(st_coordinates(wrangled_wfhz)))
-
-#### Experimental variogram ----
-exp_variogram_wfhz <- variogram(
-  object = est ~ 1,
-  data = wrangled_wfhz,
+## ---- Automatically fit a variogram ------------------------------------------
+auto_exp_variogram_wfhz <- autofitVariogram(
+  formula = est ~ 1,
+  input_data = wrangled_wfhz,
+  model = c("Sph", "Exp", "Gau", "Ste"),
+  fix.values = c(NA, NA, NA),
+  verbose = FALSE,
+  GLS.model = NA,
+  start_vals = c(NA, NA, NA),
+  miscFitOptions = list(),
   cutoff = dist_max,
   width = dist_min
 )
 
-#### Plot experimental variogram ----
-ggplot(exp_variogram_wfhz, aes(x = dist, y = gamma)) +
-  geom_point(color = "#566573") +
-  scale_x_continuous(
-    limits = c(0, 1.055 * max(exp_variogram_wfhz$dist)),
-    breaks = seq(0, 1.055 * max(exp_variogram_wfhz$dist), length.out = 6)
-  ) +
-  labs(
-    x = "Distance (h)",
-    y = expression(gamma(h))
-  )
-
-#### Fit variogram model ----
-empirical_variogram_wfhz <- fit.variogram(
-  object = exp_variogram_wfhz,
-  model = vgm(model = c("Exp", "Sph", "Gau", "Mat"))
-)
-
-#### Plot variogram ----
-v_model <- variogramLine(
-  object = empirical_variogram_wfhz,
-  maxdist = max(exp_variogram_wfhz$dist),
-  n = 100
-)
-ggplot() +
-  geom_point(
-    data = exp_variogram_wfhz,
-    aes(x = dist, y = gamma),
-    color = "#566573",
-    size = 1.2
-  ) +
-  scale_x_continuous(
-    limits = c(0, 1.055 * max(exp_variogram_wfhz$dist)),
-    breaks = seq(0, 1.055 * max(exp_variogram_wfhz$dist), length.out = 6)
-  ) +
-  geom_line(
-    data = v_model,
-    aes(x = dist, y = gamma),
-    color = "#D15310",
-    linewidth = 0.6
-  ) +
-  labs(
-    x = "Distance (h)",
-    y = expression(gamma(h)),
-    title = "Empirical & Fitted Variogram"
-  )
-
-### -------------------------------- Cross-validation: leave-one-out method ----
-cv_wfhz <- krige.cv(
+## ---- Perform automatic interpolation ----------------------------------------
+auto_interp_wfhz <- autoKrige(
   formula = est ~ 1,
-  model = empirical_variogram_wfhz,
-  locations = wrangled_wfhz,
+  input_data = wrangled_wfhz,
+  new_data = grid,
+  block = 0,
+  model = c("Sph", "Exp", "Gau", "Ste"),
+  fix.values = c(NA, NA, NA),
+  GLS.model = NA,
+  start_vals = c(NA, NA, NA),
+  miscFitOptions = list(),
+  nmin = 3,
+  nmax = 4
+)
+
+## ---- Perfom automatic cross-validation --------------------------------------
+auto_cv_wfhz <- autoKrige.cv(
+  formula = est ~ 1,
+  input_data = wrangled_wfhz,
+  model = c("Sph", "Exp", "Gau", "Ste"),
+  fix.values = c(NA, NA, NA),
+  GLS.model = NA,
+  start_vals = c(NA, NA, NA),
+  miscFitOptions = list(),
   nmin = 3,
   nmax = 4,
-  maxdist = 9000
+  maxdist = 9000,
+  verbose = c(FALSE, TRUE)
 )
 
 ### ------------------------------------------- Cross-validation statistics ----
-cv_wfhz_stats <- cv_wfhz |>
+auto_cv_wfhz_stats <- auto_cv_wfhz[[1]] |>
   as_tibble() |>
   summarise(
     mean_error = mean(residual, na.rm = TRUE), ## be as close to zero as possible
@@ -92,7 +58,7 @@ cv_wfhz_stats <- cv_wfhz |>
   )
 
 ### --------------------------------------------- Plot predicted ~ observed ----
-ggplot(cv_wfhz, aes(x = var1.pred, y = observed)) +
+ggplot(auto_cv_wfhz[[1]], aes(x = var1.pred, y = observed)) +
   geom_point(size = 1.2, color = "#BA4A00") +
   geom_abline(
     intercept = 0,
@@ -117,22 +83,12 @@ ggplot(cv_wfhz, aes(x = var1.pred, y = observed)) +
     plot.subtitle = element_text(size = 9, colour = "#706E6D")
   )
 
-## ---- Interpolate ------------------------------------------------------------
-interp <- krige(
-  formula = est ~ 1,
-  locations = wrangled_wfhz,
-  nmin = 3,
-  nmax = 4,
-  model = empirical_variogram_wfhz,
-  newdata = grid
-)
-
 ### ------------------------------------------------- Visualize map surface ----
 
 #### Static map ----
 ggplot() +
   geom_stars(
-    data = interp,
+    data = auto_interp_wfhz[[1]],
     aes(fill = var1.pred, x = x, y = y)
   ) +
   scale_fill_gradientn(
@@ -158,7 +114,7 @@ ggplot() +
   theme_void()
 
 ### Interactive map ----
-interp |>
+auto_interp_wfhz[[1]] |>
   mapview(
     alpha = 1,
     alpha.regions = 0.2,
@@ -173,18 +129,23 @@ interp |>
 
 ### ------------------------------------------------------- Get areal means ----
 #### At district level (ADM2_EN) ----
-pred_mean_admn2 <- krige(
+auto_pred_mean_admn2 <- krige(
   formula = est ~ 1,
   locations = wrangled_wfhz,
   nmin = 3,
   nmax = 4,
-  model = empirical_variogram_wfhz,
+  model = auto_exp_variogram_wfhz[[2]],
   newdata = karamoja_admn2
 )
 
 ##### Cloropleth map of the mean predicted prevalence at district level ----
 ggplot() +
-  geom_sf(data = pred_mean_admn2, aes(fill = var1.pred), color = "black", size = 0.2) +
+  geom_sf(
+    data = auto_pred_mean_admn2,
+    aes(fill = var1.pred),
+    color = "black",
+    size = 0.2
+  ) +
   scale_fill_gradientn(
     colours = apply_ipc_colours(),
     na.value = "transparent",
@@ -217,7 +178,7 @@ ggplot() +
   theme_void()
 
 ##### Get minimum and maximum predicted prevalence values by district -----
-min_max <- interp |>
+auto_min_max <- auto_interp_wfhz[[1]] |>
   st_as_sf() |>
   st_join(karamoja_admn2, left = FALSE) |> # each grid cell to a polygon
   group_by(ADM2_EN) |>
@@ -227,7 +188,7 @@ min_max <- interp |>
   )
 
 ##### Compare mean predicted prevalence against original survey results -----
-pred_vs_original <- wfhz_data |>
+auto_pred_vs_original <- wfhz_data |>
   rename(cluster = enumArea) |>
   mw_estimate_prevalence_wfhz(
     wt = NULL,
@@ -238,7 +199,7 @@ pred_vs_original <- wfhz_data |>
   arrange(factor(district)) |>
   mutate(
     survey = gam_p * 100,
-    interp = pred_mean_admn2$var1.pred,
+    interp = auto_pred_mean_admn2[["var1.pred"]],
     bias = interp - survey,
     min_interp = min_max$min_value,
     max_interp = min_max$max_value
@@ -246,19 +207,19 @@ pred_vs_original <- wfhz_data |>
   select(-gam_p)
 
 #### At county level (ADM4_EN) ----
-pred_mean_admn4 <- krige(
+auto_pred_mean_admn4 <- krige(
   formula = est ~ 1,
   locations = wrangled_wfhz,
   nmin = 3,
   nmax = 4,
-  model = empirical_variogram_wfhz,
+  model = auto_exp_variogram_wfhz[[2]],
   newdata = karamoja_admn4
 )
 
 #### Cloropleth map of the mean predicted prevalence at county level ----
 ggplot() +
   geom_sf(
-    data = pred_mean_admn4,
+    data = auto_pred_mean_admn4,
     aes(fill = var1.pred),
     color = "black",
     size = 0.2
@@ -297,5 +258,4 @@ ggplot() +
     plot.title = element_text(size = 8)
   ) +
   theme_void()
-
 ################################ End of workflow ###############################
