@@ -179,6 +179,16 @@ ggplot() +
   ) +
   theme_void()
 
+##### Get minimum and maximum predicted prevalence values by district -----
+min_max <- interp |> 
+  st_as_sf() |> 
+  st_join(karamoja_admn2, left = FALSE) |> # each grid cell to a polygon
+  group_by(ADM2_EN) |> 
+  summarise(
+    min_value = min(var1.pred, na.rm = TRUE),
+    max_value = max(var1.pred, na.rm = TRUE)
+  )
+
 ##### Compare mean predicted prevalence against original survey results -----
 pred_vs_original <- wfhz_data |> 
   rename(cluster = enumArea) |> 
@@ -188,13 +198,15 @@ pred_vs_original <- wfhz_data |>
     .by = district
   ) |> 
   select(district, gam_p) |> 
+  arrange(factor(district)) |> 
   mutate(
     survey = gam_p * 100,
     interp = pred_mean_admn2$var1.pred,
-    bias = interp - survey
+    bias = interp - survey, 
+    min_interp = min_max$min_value, 
+    max_interp = min_max$max_value
   ) |> 
   select(-gam_p)
-
 
 #### At county level (ADM4_EN) ----
 pred_mean_admn4 <- krige(
@@ -208,7 +220,12 @@ pred_mean_admn4 <- krige(
 
 #### Cloropleth map of the mean predicted prevalence at county level ----
 ggplot() +
-  geom_sf(data = pred_mean_admn4, aes(fill = var1.pred), color = "black", size = 0.2) +
+  geom_sf(
+    data = pred_mean_admn4,
+    aes(fill = var1.pred), 
+    color = "black", 
+    size = 0.2
+  ) +
   scale_fill_gradientn(colors = custom_colors) +
   geom_sf(
     data = karamoja_admn4, 
