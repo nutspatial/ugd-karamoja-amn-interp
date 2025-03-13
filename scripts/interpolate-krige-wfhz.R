@@ -124,6 +124,8 @@ interp <- krige(
 )
 
 ### ------------------------------------------------- Visualize map surface ----
+
+#### Static map ----
 ggplot() + 
   geom_stars(
     data = interp, 
@@ -137,9 +139,19 @@ ggplot() +
   ) +
   theme_void()
 
+### Interactive map ----
+interp |> 
+  mapview(
+    alpha = 1,
+    alpha.regions = 0.2, 
+    col.regions = ipc_colours(.map_type = "interactive", indicator = "wfhz"), 
+    na.color = "transparent",  
+    trim = TRUE 
+  )
+
 ### -------------------------------------------- Predicting standard errors ----
 
-
+## TO BE ADDED 
 
 ### ------------------------------------------------------- Get areal means ----
 #### At district level (ADM2_EN) ----
