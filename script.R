@@ -1,5 +1,4 @@
 ## ---- Load required libraries ------------------------------------------------
-library(readxl)
 library(dplyr)
 library(lubridate)
 library(mwana)
@@ -13,9 +12,6 @@ library(mapview)
 
 ## ---- Load utility functions -------------------------------------------------
 source("R/utils.R")
-
-## ---- Read in input data and set Coordinate Reference System -----------------
-source("scripts/read-in-input-data.R")
 
 ## ---- Read in Karamoja shapefiles and set CRS --------------------------------
 source("scripts/read-in-shapefiles.R")

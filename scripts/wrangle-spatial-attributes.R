@@ -6,10 +6,10 @@
 ## ---- Set WFHZ data as an `sf` object  ---------------------------------------
 wfhz <- wfhz_data |>
   filter(!flag_wfhz == 1) |>
-  select(enumArea, X, Y, gam) |>
-  filter(!is.na(X)) |>
+  select(enum_area, x, y, gam) |>
+  filter(!is.na(x)) |>
   st_as_sf(
-    coords = c("X", "Y"),
+    coords = c("x", "y"),
     dim = "XY"
   ) |>
   st_set_crs(value = "EPSG:4326")
@@ -20,17 +20,17 @@ aggr_wfhz <- wfhz |>
     long_x = st_coordinates(geometry)[, 1],
     lati_y = st_coordinates(geometry)[, 2]
   ) |>
-  group_by(enumArea) |>
+  group_by(enum_area) |>
   summarise(
     cases = sum(gam, na.rm = TRUE),
     pop = n(),
-    X = mean(long_x, na.rm = TRUE),
-    Y = mean(lati_y, na.rm = TRUE)
+    x = mean(long_x, na.rm = TRUE),
+    y = mean(lati_y, na.rm = TRUE)
   ) |>
   as_tibble() |>
   select(-geometry) |>
   st_as_sf(
-    coords = c("X", "Y"),
+    coords = c("x", "y"),
     dim = "XY",
     crs = "EPSG:4326"
   ) |>
@@ -139,10 +139,10 @@ ggplot(data = karamoja_admn2) +
 ## ---- Set data as an `sf` object and reproject CRS (MUAC) --------------------
 muac <- muac_data |>
   filter(!flag_mfaz == 1) |>
-  select(enumArea, X, Y, gam) |>
-  filter(!is.na(X)) |>
+  select(enum_area, x, y, gam) |>
+  filter(!is.na(x)) |>
   st_as_sf(
-    coords = c("X", "Y"),
+    coords = c("x", "y"),
     dim = "XY"
   ) |>
   st_set_crs(value = "EPSG:4326")
@@ -153,17 +153,17 @@ aggr_muac <- muac |>
     long_x = st_coordinates(geometry)[, 1],
     lati_y = st_coordinates(geometry)[, 2]
   ) |>
-  group_by(enumArea) |>
+  group_by(enum_area) |>
   summarise(
     cases = sum(gam, na.rm = TRUE),
     pop = n(),
-    X = mean(long_x, na.rm = TRUE),
-    Y = mean(lati_y, na.rm = TRUE)
+    x = mean(long_x, na.rm = TRUE),
+    y = mean(lati_y, na.rm = TRUE)
   ) |>
   as_tibble() |>
   select(-geometry) |>
   st_as_sf(
-    coords = c("X", "Y"),
+    coords = c("x", "y"),
     dim = "XY",
     crs = "EPSG:4326"
   ) |>

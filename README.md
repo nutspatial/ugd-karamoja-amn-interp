@@ -38,8 +38,8 @@ The quest used derived from a Food Security and Livelihood Assessment
 (FSLA) conducted in February 2021. The FSLA was designed to represent
 each district independently. It employed the SMART methodology..
 
-[Map of the Karamoja region, Uganda, showing district and within
-district boundaries](karamoja-region.png)
+![Map of the Karamoja region, Uganda, showing district and within
+district boundaries](karamoja-region.png){width = 200}
 
 ## Repository Structure
 
@@ -53,7 +53,6 @@ district boundaries](karamoja-region.png)
     automatic model construction.
   - `krige-interpolate-wfhz.R`: spatial interplolation through “manual”
     model construction.
-  - `read-in-input-data.R`: reads the raw dataset into R.
   - `read-in-shapefiles.R`: reads the `.shp` shapefiles of the study
     area and sets the area coordinate reference system.
   - `wrangle-aspatial-attributes.R`: wrangles the anthropometric data to
@@ -65,7 +64,7 @@ The following workflow is recommended:
 
 ``` mermaid
 flowchart LR
-A(Run read-in-input-data.R)
+A(Run utils.R)
 B(Run read-in-shapefiles.R)
 C(Run wrangle-aspatial-attributes.R)
 D(Run data-quality-check.R)

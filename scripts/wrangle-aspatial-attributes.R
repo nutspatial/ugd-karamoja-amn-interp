@@ -1,24 +1,30 @@
+################################################################################
+#                             ASPATIAL DATA WRANGLING                          #
+################################################################################
+
 ## ---- Wrangle weight-for-height data -----------------------------------------
-wfhz_data <- data |>
+wfhz_data <- data |> 
+  janitor::clean_names() |> 
+  select(-c(parish, flag_who, whz_who, team, id, hh)) |> 
   mutate(
     age = NA_real_,
     date = date(date),
-    ChildDoB = date(ChildDoB),
-    ChildOedema = ifelse(ChildOedema == "2", "n", "y")
+    child_do_b = date(child_do_b),
+    child_oedema = ifelse(child_oedema == "2", "n", "y")
   ) |>
   rename(
-    height = ChildHt_Height,
-    weight = ChildWt,
-    district = ADM2_EN
+    height = child_ht_height,
+    weight = child_wt,
+    district = adm2_en
   ) |>
   mw_wrangle_age(
     dos = date,
-    dob = ChildDoB,
+    dob = child_do_b,
     age = age,
     .decimals = 2
   ) |>
   mw_wrangle_wfhz(
-    sex = ChildSex,
+    sex = child_sex,
     weight = weight,
     height = height,
     .recode_sex = FALSE,
@@ -26,31 +32,33 @@ wfhz_data <- data |>
   ) |>
   define_wasting(
     zscores = wfhz,
-    edema = ChildOedema,
+    edema = child_oedema,
     .by = "zscores"
   )
 
 ## ---- Wrangle MUAC data ------------------------------------------------------
-muac_data <- data |>
+muac_data <- data |> 
+  janitor::clean_names() |> 
+  select(-c(parish, flag_who, whz_who, team, id, hh)) |> 
   mutate(
     age = NA_real_,
     date = date(date),
-    ChildDoB = date(ChildDoB),
-    ChildOedema = ifelse(ChildOedema == "2", "n", "y"),
-    MUAC = round(MUAC, 0)
+    child_do_b = date(child_do_b),
+    child_oedema = ifelse(child_oedema == "2", "n", "y"),
+    muac = round(muac, 0)
   ) |>
   rename(
-    muac = MUAC,
-    district = ADM2_EN
+    muac = muac,
+    district = adm2_en
   ) |>
   mw_wrangle_age(
     dos = date,
-    dob = ChildDoB,
+    dob = child_do_b,
     age = age,
     .decimals = 2
   ) |>
   mw_wrangle_muac(
-    sex = ChildSex,
+    sex = child_sex,
     muac = muac,
     age = age,
     .recode_sex = FALSE,
@@ -60,7 +68,7 @@ muac_data <- data |>
   mutate(muac = recode_muac(muac, .to = "mm")) |>
   define_wasting(
     muac = muac,
-    edema = ChildOedema,
+    edema = child_oedema,
     .by = "muac"
   )
 ################################ End of workflow ###############################
