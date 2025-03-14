@@ -1,6 +1,7 @@
 #'
 #'
-#'  Utility function to apply IPC Acute Malnutriton color codes based indicator
+#'  Utility function to apply IPC Acute Malnutriton color codes based on 
+#'  either WFHZ or MUAC prevalence
 #'
 #'
 #'
