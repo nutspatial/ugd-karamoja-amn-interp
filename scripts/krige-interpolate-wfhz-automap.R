@@ -189,10 +189,10 @@ auto_min_max <- auto_interp_wfhz[[1]] |>
 
 ##### Compare mean predicted prevalence against original survey results -----
 auto_pred_vs_original <- wfhz_data |>
-  rename(cluster = enumArea) |>
+  rename(cluster = enum_area) |>
   mw_estimate_prevalence_wfhz(
     wt = NULL,
-    edema = ChildOedema,
+    edema = child_oedema,
     .by = district
   ) |>
   select(district, gam_p) |>
