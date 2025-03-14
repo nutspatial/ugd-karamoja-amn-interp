@@ -21,7 +21,7 @@ The analysis covered the Karamoja region in Uganda. This region has an area of 2
 
 The quest used derived from a Food Security and Livelihood Assessment (FSLA) conducted in February 2021. The FSLA was designed to represent each district independently. It employed the SMART methodology.. 
 
-![Map of the Karamoja region, Uganda, showing district and within district boundaries](karamoja-region.png){width = 200}
+![](karamoja_region.png){fig-alt="Map of the Karamoja region, Uganda, showing district and within district boundaries" width="300" fig-align="center"}
 
 ## Repository Structure
 + `raw-data/`: a data frame of the input data. This is encrypted. 

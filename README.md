@@ -38,8 +38,9 @@ The quest used derived from a Food Security and Livelihood Assessment
 (FSLA) conducted in February 2021. The FSLA was designed to represent
 each district independently. It employed the SMART methodology..
 
-![Map of the Karamoja region, Uganda, showing district and within
-district boundaries](karamoja-region.png){width = 200}
+<img src="karamoja_region.png"
+data-fig-alt="Map of the Karamoja region, Uganda, showing district and within district boundaries"
+data-fig-align="center" width="300" />
 
 ## Repository Structure
 
