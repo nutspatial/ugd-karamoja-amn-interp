@@ -9,6 +9,7 @@ library(stars)
 library(automap)
 library(ggplot2)
 library(mapview)
+library(janitor)
 
 ## ---- Load utility functions -------------------------------------------------
 source("R/utils.R")

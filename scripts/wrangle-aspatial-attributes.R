@@ -3,8 +3,8 @@
 ################################################################################
 
 ## ---- Wrangle weight-for-height data -----------------------------------------
-wfhz_data <- data |> 
-  janitor::clean_names() |> 
+wfhz_data <- input_data |> 
+  clean_names() |> 
   select(-c(parish, flag_who, whz_who, team, id, hh)) |> 
   mutate(
     age = NA_real_,
@@ -37,8 +37,8 @@ wfhz_data <- data |>
   )
 
 ## ---- Wrangle MUAC data ------------------------------------------------------
-muac_data <- data |> 
-  janitor::clean_names() |> 
+muac_data <- input_data |> 
+  clean_names() |> 
   select(-c(parish, flag_who, whz_who, team, id, hh)) |> 
   mutate(
     age = NA_real_,
