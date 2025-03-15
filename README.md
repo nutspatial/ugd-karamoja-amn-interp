@@ -92,7 +92,7 @@ dependencies were used:
 - `{stars}` version 0.6.8  
 - `{automap}` version 1.1.16  
 - `{ggplot2}` version 3.5.1  
-- `{mapview}` version 2.11.2
+- `{mapview}` version 2.11.2 - `{janitor}` version 2.2.0
 
 ## License
 

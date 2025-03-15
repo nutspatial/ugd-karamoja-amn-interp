@@ -62,6 +62,7 @@ The repository was created in `R` version 4.4.2, and the following dependencies 
   - `{automap}` version 1.1.16  
   - `{ggplot2}` version 3.5.1  
   - `{mapview}` version 2.11.2
+  - `{janitor}` version 2.2.0
 
 ## License
 This repository is licensed under a GNU General Public License 3 (GPL-3).  
