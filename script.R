@@ -12,6 +12,10 @@ library(mapview)
 library(janitor)
 library(cyphr)
 
+
+## ---- Retrieve secret key for decryption -------------------------------------
+secret_key <- data_key(".", path_user = Sys.getenv("."))
+
 ## ---- Load utility functions -------------------------------------------------
 source("R/utils.R")
 
