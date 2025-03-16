@@ -3,7 +3,7 @@
 ################################################################################
 
 ## ---- Wrangle weight-for-height data -----------------------------------------
-wfhz_data <- input_data |> 
+wfhz_data <- nut_data |> 
   clean_names() |> 
   select(-c(parish, flag_who, whz_who, team, id, hh)) |> 
   mutate(
@@ -37,7 +37,7 @@ wfhz_data <- input_data |>
   )
 
 ## ---- Wrangle MUAC data ------------------------------------------------------
-muac_data <- input_data |> 
+muac_data <- nut_data |> 
   clean_names() |> 
   select(-c(parish, flag_who, whz_who, team, id, hh)) |> 
   mutate(
