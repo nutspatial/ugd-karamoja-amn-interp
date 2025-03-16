@@ -101,7 +101,7 @@ ggplot() +
     values = scales::rescale(c(0, 5, 10, 15, 30), from = c(0, 30))
   ) +
   geom_sf(
-    data = st_cast(karamoja_admn4, "MULTILINESTRING"),
+    data = st_cast(uga4_county, "MULTILINESTRING"),
     linewidth = 0.2,
     color = "grey"
   ) +
@@ -135,7 +135,7 @@ auto_pred_mean_admn2 <- krige(
   nmin = 3,
   nmax = 4,
   model = auto_exp_variogram_wfhz[[2]],
-  newdata = karamoja_admn2
+  newdata = uga2_district
 )
 
 ##### Cloropleth map of the mean predicted prevalence at district level ----
@@ -156,13 +156,13 @@ ggplot() +
     values = scales::rescale(c(0, 5, 10, 15, 30), from = c(0, 30))
   ) +
   geom_sf(
-    data = karamoja_admn2,
+    data = uga2_district,
     fill = NA,
     color = "#F2F3F4",
     size = 0.8
   ) +
   geom_sf_text(
-    data = karamoja_admn2,
+    data = uga2_district,
     mapping = aes(label = factor(ADM2_EN)),
     show.legend = TRUE,
     color = "#34495E",
@@ -180,7 +180,7 @@ ggplot() +
 ##### Get minimum and maximum predicted prevalence values by district -----
 auto_min_max <- auto_interp_wfhz[[1]] |>
   st_as_sf() |>
-  st_join(karamoja_admn2, left = FALSE) |> # each grid cell to a polygon
+  st_join(uga2_district, left = FALSE) |> # each grid cell to a polygon
   group_by(ADM2_EN) |>
   summarise(
     min_value = min(var1.pred, na.rm = TRUE),
@@ -213,7 +213,7 @@ auto_pred_mean_admn4 <- krige(
   nmin = 3,
   nmax = 4,
   model = auto_exp_variogram_wfhz[[2]],
-  newdata = karamoja_admn4
+  newdata = uga4_county
 )
 
 #### Cloropleth map of the mean predicted prevalence at county level ----
@@ -234,18 +234,18 @@ ggplot() +
     values = scales::rescale(c(0, 5, 10, 15, 30), from = c(0, 30))
   ) +
   geom_sf(
-    data = karamoja_admn4,
+    data = uga4_county,
     fill = NA,
     color = "#F2F3F4"
   ) +
   geom_sf(
-    data = karamoja_admn2,
+    data = uga2_district,
     fill = NA,
     color = "#3F4342",
     size = 0.8
   ) +
   geom_sf_text(
-    data = karamoja_admn2,
+    data = uga2_district,
     mapping = aes(label = factor(ADM2_EN)),
     show.legend = TRUE,
     color = "#34495E",

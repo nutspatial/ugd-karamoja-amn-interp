@@ -2,6 +2,27 @@
 #             WORKFLOW TO WRANGLE DATA THROUGH SPATIAL ATTRIBUTES              #
 ################################################################################
 
+## ---- Filter out Karamoja districts and reproject CRS ------------------------
+
+### ---------------------------------------------------- List of districts -----
+districts <- c(
+  "Abim", "Amudat", "Kotido", "Karenga", "Kaabong", "Napak",
+  "Nakapiripirit", "Nabilatuk", "Moroto"
+)
+
+### ---------------------------------------------- Filter out and reproject ----
+uga2_district <- st_read(
+  dsn = "data-raw/uga-shp/uga_admbnda_adm2_ubos_20200824.shp"
+) |>
+  filter(ADM2_EN %in% districts) |>
+  st_transform(crs = "EPSG:32636")
+
+uga4_county <- st_read(
+  dsn = "data-raw/uga-shp/uga_admbnda_adm4_ubos_20200824.shp"
+) |>
+  filter(ADM2_EN %in% districts) |>
+  st_transform(crs = "EPSG:32636")
+
 
 ## ---- Set WFHZ data as an `sf` object  ---------------------------------------
 wfhz <- wfhz_data |>
@@ -34,7 +55,7 @@ aggr_wfhz <- wfhz |>
     dim = "XY",
     crs = "EPSG:4326"
   ) |>
-  st_transform(crs = st_crs(karamoja_admn2))
+  st_transform(crs = st_crs(uga2_district))
 
 ### -------------------------- Calculate spatial weights: K-Near Neighbours ----
 sp_wts_wfhz <- aggr_wfhz |>
@@ -77,14 +98,14 @@ wrangled_wfhz <- wrangled_wfhz |>
   )
 
 #### ------------------------------------------------------- Plot raw rates ----
-ggplot(data = karamoja_admn2) +
+ggplot(data = uga2_district) +
   geom_sf(
     fill = "white",
     color = "#3F4342",
     size = 0.8
   ) +
   geom_sf(
-    data = karamoja_admn4,
+    data = uga4_county,
     fill = NA,
     color = "#F2F3F4"
   ) +
@@ -107,14 +128,14 @@ ggplot(data = karamoja_admn2) +
   )
 
 ### ------------------------------------------------------------ Plot SEBSR ----
-ggplot(data = karamoja_admn2) +
+ggplot(data = uga2_district) +
   geom_sf(
     fill = "white",
     color = "#3F4342",
     size = 0.8
   ) +
   geom_sf(
-    data = karamoja_admn4,
+    data = uga4_county,
     fill = NA,
     color = "#F2F3F4"
   ) +
@@ -137,6 +158,7 @@ ggplot(data = karamoja_admn2) +
   )
 
 ## ---- Set data as an `sf` object and reproject CRS (MUAC) --------------------
+
 muac <- muac_data |>
   filter(!flag_mfaz == 1) |>
   select(enum_area, x, y, gam) |>
@@ -167,7 +189,7 @@ aggr_muac <- muac |>
     dim = "XY",
     crs = "EPSG:4326"
   ) |>
-  st_transform(crs = st_crs(karamoja_admn2))
+  st_transform(crs = st_crs(uga2_district))
 
 ### -------------------------- Calculate spatial weights: K-Near Neighbours ----
 sp_wts_muac <- aggr_muac |>
@@ -210,14 +232,14 @@ wrangled_muac <- wrangled_muac |>
   )
 
 #### Plot raw rates ----
-ggplot(data = karamoja_admn2) +
+ggplot(data = uga2_district) +
   geom_sf(
     fill = "white",
     color = "#3F4342",
     size = 0.8
   ) +
   geom_sf(
-    data = karamoja_admn4,
+    data = uga4_county,
     fill = NA,
     color = "#F2F3F4"
   ) +
@@ -240,14 +262,14 @@ ggplot(data = karamoja_admn2) +
   )
 
 #### Plot SEBSR ----
-ggplot(data = karamoja_admn2) +
+ggplot(data = uga2_district) +
   geom_sf(
     fill = "white",
     color = "#3F4342",
     size = 0.8
   ) +
   geom_sf(
-    data = karamoja_admn4,
+    data = uga4_county,
     fill = NA,
     color = "#F2F3F4"
   ) +
