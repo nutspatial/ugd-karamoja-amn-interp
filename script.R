@@ -16,7 +16,7 @@ library(cyphr)
 options(timeout = 300)
 
 ## ---- Retrieve secret key for decryption -------------------------------------
-secret_key <- data_key(".", path_user = Sys.getenv("."))
+secret_key <- data_key(".")
 
 ## ---- Load project-specific functions ----------------------------------------
 for (i in list.files(path = "R", full.names = TRUE)) source(i)
