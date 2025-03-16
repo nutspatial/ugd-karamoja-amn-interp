@@ -12,23 +12,25 @@ library(mapview)
 library(janitor)
 library(cyphr)
 
+## ---- Set global variables ---------------------------------------------------
+options(timeout = 300)
 
 ## ---- Retrieve secret key for decryption -------------------------------------
 secret_key <- data_key(".", path_user = Sys.getenv("."))
 
-## ---- Load utility functions -------------------------------------------------
-source("R/utils.R")
+## ---- Load project-specific functions ----------------------------------------
+for (i in list.files(path = "R", full.names = TRUE)) source(i)
 
-## ---- Read in Karamoja shapefiles and set CRS --------------------------------
-source("scripts/read-in-shapefiles.R")
+## ---- Read in nutrition data and Uganda shapefiles ---------------------------
+source("scripts/read-in-data.R")
 
-## ---- Wrangle non-spatial data -----------------------------------------------
+## ---- Wrangle aspatial data attributes ---------------------------------------
 source("scripts/wrangle-aspatial-attributes.R")
 
 ## ---- Run data plausibility checks -------------------------------------------
 source("scripts/data-quality-check.R")
 
-## ---- Wrangle spatial data ---------------------------------------------------
+## ---- Wrangle spatial data attributes ----------------------------------------
 source("scripts/wrangle-spatial-attributes.R")
 
 ## ---- Run spatial interpolation ----------------------------------------------
