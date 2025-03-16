@@ -15,7 +15,7 @@
 #'
 
 download_uga_shp <- function(url = "https://data.humdata.org/dataset/6d6d1495-196b-49d0-86b9-dc9022cde8e7/resource/43dbdff6-aadd-4941-957e-f7eab0717f53/download/uga_admbnda_ubos_20200824_shp.zip", 
-  destfile = "data-raw/uganda_shp.zip", 
+  destfile = "data-raw/uganda-shp.zip", 
   overwrite = FALSE) {
 ## Check whether destfile exists and download accordingly ----
 if (file.exists(destfile)) {
