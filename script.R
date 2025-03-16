@@ -10,6 +10,7 @@ library(automap)
 library(ggplot2)
 library(mapview)
 library(janitor)
+library(cyphr)
 
 ## ---- Load utility functions -------------------------------------------------
 source("R/utils.R")
