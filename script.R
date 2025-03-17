@@ -12,11 +12,11 @@ library(mapview)
 library(janitor)
 library(cyphr)
 
-## ---- Set global variables ---------------------------------------------------
-options(timeout = 300)
+## ---- Set global options and global enviroment variables ---------------------
+options(timeout = 300) ## increase timeout for downloads to 300 seconds
 
 ## ---- Retrieve secret key for decryption -------------------------------------
-secret_key <- data_key(".")
+secret_key <- data_key(".", path_user = Sys.getenv("path_secret_key"))
 
 ## ---- Load project-specific functions ----------------------------------------
 for (i in list.files(path = "R", full.names = TRUE)) source(i)
