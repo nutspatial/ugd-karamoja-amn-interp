@@ -1,5 +1,5 @@
 ################################################################################
-#                           INTERPOLATE WITH `{automap}`                       #
+#                   INTERPOLATE GAM by WFHZ  WITH `{automap}`                  #
 ################################################################################
 
 ## ---- Automatically fit a variogram ------------------------------------------
@@ -125,7 +125,59 @@ auto_interp_wfhz[[1]] |>
 
 ### -------------------------------------------- Predicting standard errors ----
 
-## TO BE ADDED...
+#### Interpolate standardized standard errors ----
+auto_zse_wfhz <- krige(
+  formula = zscore ~ 1, 
+  locations = cv_wfhz |> filter(!is.na(zscore)), 
+  nmin = 3, 
+  nmax = 4, 
+  model = auto_exp_variogram_wfhz[[2]], 
+  newdata = grid
+)
+
+#### Surface map of standardized prediction standard errors ----
+ggplot() +
+  geom_stars(
+    data = auto_zse_wfhz,
+    aes(fill = var1.pred, x = x, y = y)
+  ) +
+  scale_fill_gradient2(
+    low = "#5E3C99",
+    mid = "white",
+    high = "#008837",
+    midpoint = 0, 
+    na.value = NA,
+    name = ""
+  ) +
+  geom_sf(
+    data = st_cast(uga2_district, "MULTILINESTRING"), 
+    linewidth = 0.5,
+    color = "orange"
+  ) +
+  geom_sf(
+    data = st_cast(uga4_county, "MULTILINESTRING"),
+    linewidth = 0.2,
+    color = "grey"
+  ) +
+  geom_sf_text(
+    data = uga2_district,
+    mapping = aes(label = factor(ADM2_EN)),
+    show.legend = TRUE,
+    color = "black",
+    size = 3,
+  ) +
+  geom_sf(
+    data = wrangled_wfhz,
+    size = 1.0, 
+    color = "#7FB3D5",
+  ) +
+  labs(
+    title = "Surface map of the standardized prediction standard errors of GAM by WFHZ"
+  ) +
+  theme_void() +
+  theme(
+    plot.title = element_text(colour = "#706E6D", size = 11)
+  )
 
 ### ------------------------------------------------------- Get areal means ----
 #### At district level (ADM2_EN) ----

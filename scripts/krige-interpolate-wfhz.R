@@ -1,5 +1,5 @@
 ################################################################################
-#                                INTERPOLATE                                   #
+#                            INTERPOLATE GAM by WFHZ                           #
 ################################################################################
 
 ## ---- Create a surface to interpolate on -------------------------------------
@@ -76,8 +76,7 @@ cv_wfhz <- krige.cv(
   model = empirical_variogram_wfhz,
   locations = wrangled_wfhz,
   nmin = 3,
-  nmax = 4,
-  maxdist = 9000
+  nmax = 4
 )
 
 ### ------------------------------------------- Cross-validation statistics ----
@@ -167,11 +166,64 @@ interp |>
     trim = TRUE
   )
 
-### -------------------------------------------- Predicting standard errors ----
+### -------------------------------------------- Prediction standard errors ----
 
-## TO BE ADDED...
+#### Interpolate standardized standard errors ----
+zse_wfhz <- krige(
+  formula = zscore ~ 1, 
+  locations = cv_wfhz |> filter(!is.na(zscore)), 
+  nmin = 3, 
+  nmax = 4, 
+  model = empirical_variogram_wfhz, 
+  newdata = grid
+)
+
+#### Surface map of prediction standard errors ----
+ggplot() +
+  geom_stars(
+    data = zse_wfhz,
+    aes(fill = var1.pred, x = x, y = y)
+  ) +
+  scale_fill_gradient2(
+    low = "#5E3C99",
+    mid = "white",
+    high = "#008837",
+    midpoint = 0,
+    na.value = NA, 
+    name = ""
+  ) +
+  geom_sf(
+    data = st_cast(uga2_district, "MULTILINESTRING"), 
+    linewidth = 0.5,
+    color = "orange"
+  ) +
+  geom_sf(
+    data = st_cast(uga4_county, "MULTILINESTRING"),
+    linewidth = 0.2,
+    color = "grey"
+  ) +
+  geom_sf_text(
+    data = uga2_district,
+    mapping = aes(label = factor(ADM2_EN)),
+    show.legend = TRUE,
+    color = "black",
+    size = 3,
+  ) +
+  geom_sf(
+    data = wrangled_wfhz,
+    size = 1.0, 
+    color = "#7FB3D5",
+  ) +
+  labs(
+    title = "Surface map of the standardized prediction standard errors of GAM by WFHZ"
+  ) +
+  theme_void() +
+  theme(
+    plot.title = element_text(colour = "#706E6D", size = 11)
+  )
 
 ### ------------------------------------------------------- Get areal means ----
+
 #### At district level (ADM2_EN) ----
 pred_mean_admn2 <- krige(
   formula = est ~ 1,
@@ -184,11 +236,16 @@ pred_mean_admn2 <- krige(
 
 ##### Cloropleth map of the mean predicted prevalence at district level ----
 ggplot() +
-  geom_sf(data = pred_mean_admn2, aes(fill = var1.pred), color = "black", size = 0.2) +
+  geom_sf(
+    data = pred_mean_admn2, 
+    aes(fill = var1.pred), 
+    color = "black", 
+    size = 0.2
+  ) +
   scale_fill_gradientn(
     colours = apply_ipc_colours(),
     na.value = "transparent",
-    name = "GAM Prevalence (%)",
+    #name = "GAM Prevalence (%)",
     limits = c(0, 30),
     breaks = c(0, 5, 10, 15, 30),
     labels = c("<5.0", "5.0-9.9", "10.0-14.9", "15.0-29.9", "≥30.0"),
@@ -208,13 +265,13 @@ ggplot() +
     size = 3,
   ) +
   labs(
-    title = "Mean predicted prevalence of GAM by WFHZ at district level",
-    fill = "Predicted Values"
+    title = "Mean predicted prevalence of GAM by WFHZ at district level", 
+    fill = ""
   ) +
+  theme_void() +
   theme(
-    plot.title = element_text(size = 9)
-  ) +
-  theme_void()
+    plot.title = element_text(size = 11, colour = "#706E6D")
+  )
 
 ##### Get minimum and maximum predicted prevalence values by district -----
 min_max <- interp |>
@@ -259,14 +316,14 @@ pred_mean_admn4 <- krige(
 ggplot() +
   geom_sf(
     data = pred_mean_admn4,
-    aes(fill = var1.pred),
+    aes(fill = var1.pred, name = ""),
     color = "black",
     size = 0.2
   ) +
   scale_fill_gradientn(
     colours = apply_ipc_colours(),
     na.value = "transparent",
-    name = "GAM Prevalence (%)",
+    #name = "GAM Prevalence (%)",
     limits = c(0, 30),
     breaks = c(0, 5, 10, 15, 30), # Define range breakpoints
     labels = c("<5.0", "5.0-9.9", "10.0-14.9", "15.0-29.9", "≥30.0"),
@@ -291,11 +348,12 @@ ggplot() +
     size = 3,
   ) +
   labs(
-    title = "Mean predicted prevalence of GAM by WFHZ at county level"
+    title = "Mean predicted prevalence of GAM by WFHZ at county level", 
+    fill = ""
   ) +
+  theme_void() +
   theme(
-    plot.title = element_text(size = 8)
-  ) +
-  theme_void()
+    plot.title = element_text(size = 11, colour = "#706E6D")
+  )
 
 ################################ End of workflow ###############################
