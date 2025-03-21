@@ -216,17 +216,19 @@ wrangled_muac <- cbind(aggr_muac, sebsr_muac)
 #### Create a categorical variable with custom breakpoints ----
 wrangled_muac <- wrangled_muac |>
   mutate(
+    est = est * 100,
+    raw = raw * 100,
     est = ifelse(est == "NaN", 0, est),
     sebsr_cat = cut(
       x = est,
-      breaks = c(-Inf, 0.05, 0.09, 0.149, Inf),
-      labels = c("<0.05", "0.05-0.09", "0.10-0.149", "≥0.15"),
+      breaks = c(-Inf, 5, 9, 14.9, Inf),
+      labels = c("<5.0%", "5.0-9.0%", "10.0-14.9%", "≥15.0%"),
       include.lowest = TRUE
     ),
     raw_cat = cut(
       x = raw,
-      breaks = c(-Inf, 0.05, 0.09, 0.149, Inf),
-      labels = c("<0.05", "0.05-0.09", "0.10-0.149", "≥0.15"),
+      breaks = c(-Inf, 5, 9, 14.9, Inf),
+      labels = c("<5.0%", "5.0-9.0%", "10.0-14.9%", "≥15.0%"),
       include.lowest = TRUE
     )
   )

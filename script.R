@@ -38,3 +38,6 @@ source("scripts/krige-interpolate-wfhz.R")
 
 ## ---- Run automated spatial interpolation with `{automap}` -------------------
 source("scripts/krige-interpolate-wfhz-automap.R")
+
+## ---- Run automated spatial interpolation of GAM by MUAC with `{automap}` ----
+source("scripts/krige-interpolate-muac-automap.R")

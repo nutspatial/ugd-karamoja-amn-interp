@@ -1,11 +1,11 @@
 ################################################################################
-#                   INTERPOLATE GAM by WFHZ  WITH `{automap}`                  #
+#                   INTERPOLATE GAM by MUAC  WITH `{automap}`                  #
 ################################################################################
 
 ## ---- Automatically fit a variogram ------------------------------------------
-auto_exp_variogram_wfhz <- autofitVariogram(
+auto_exp_variogram_muac <- autofitVariogram(
   formula = est ~ 1,
-  input_data = wrangled_wfhz,
+  input_data = wrangled_muac,
   model = c("Sph", "Exp", "Gau", "Ste"),
   fix.values = c(NA, NA, NA),
   verbose = FALSE,
@@ -17,9 +17,9 @@ auto_exp_variogram_wfhz <- autofitVariogram(
 )
 
 ## ---- Perform automatic interpolation ----------------------------------------
-auto_interp_wfhz <- autoKrige(
+auto_interp_muac <- autoKrige(
   formula = est ~ 1,
-  input_data = wrangled_wfhz,
+  input_data = wrangled_muac,
   new_data = grid,
   block = 0,
   model = c("Sph", "Exp", "Gau", "Ste"),
@@ -30,22 +30,20 @@ auto_interp_wfhz <- autoKrige(
   nmin = 3,
   nmax = 4
 )
-
-### --------- Bin interpolated GAM prevalence into IPC AMN Phase categories ----
-auto_interp_wfhz$krige_output <- auto_interp_wfhz$krige_output |> 
+### --- Bin interpolated GAM prevalence into IPC AMN Phase categories ----
+auto_interp_muac$krige_output <- auto_interp_muac$krige_output |> 
   mutate(
     var1.pred.cat = cut(
-      x = var1.pred,
-      breaks = c(-Inf, 5.0, 9.9, 14.9, 29.9, Inf),
-      labels = c("<5.0%", "5.0-9.9%", "10.0-14.9%", "15.0-29.9%", "≥30.0%"),
-      include.lowest = TRUE
+      var1.pred,
+      breaks = c(-Inf, 5, 10, 15, Inf),
+      labels = c("<5.0%", "5.0-9.9%", "10.0-14.9%", "≥15.0%")
     )
   )
 
 ## ---- Perfom automatic cross-validation --------------------------------------
-auto_cv_wfhz <- autoKrige.cv(
+auto_cv_muac <- autoKrige.cv(
   formula = est ~ 1,
-  input_data = wrangled_wfhz,
+  input_data = wrangled_muac,
   model = c("Sph", "Exp", "Gau", "Ste"),
   fix.values = c(NA, NA, NA),
   GLS.model = NA,
@@ -58,7 +56,7 @@ auto_cv_wfhz <- autoKrige.cv(
 )
 
 ### ------------------------------------------- Cross-validation statistics ----
-auto_cv_wfhz_stats <- auto_cv_wfhz[[1]] |>
+auto_cv_muac_stats <- auto_cv_muac[[1]] |>
   as_tibble() |>
   summarise(
     mean_error = mean(residual, na.rm = TRUE), ## be as close to zero as possible
@@ -69,7 +67,7 @@ auto_cv_wfhz_stats <- auto_cv_wfhz[[1]] |>
   )
 
 ### --------------------------------------------- Plot predicted ~ observed ----
-ggplot(auto_cv_wfhz[[1]], aes(x = var1.pred, y = observed)) +
+ggplot(auto_cv_muac[[1]], aes(x = var1.pred, y = observed)) +
   geom_point(size = 1.2, color = "#BA4A00") +
   geom_abline(
     intercept = 0,
@@ -99,11 +97,11 @@ ggplot(auto_cv_wfhz[[1]], aes(x = var1.pred, y = observed)) +
 #### Static map ----
 ggplot() +
   geom_stars(
-    data = auto_interp_wfhz[[1]],
+    data = auto_interp_muac$krige_output,
     aes(fill = var1.pred.cat, x = x, y = y)
   ) +
-    scale_fill_manual(
-      values = apply_ipc_colours(indicator = "wfhz", .map_type = "static"),
+  scale_fill_manual(
+      values = apply_ipc_colours(indicator = "muac", .map_type = "static"),
       name = "", 
       na.translate = FALSE
   ) +
@@ -113,19 +111,19 @@ ggplot() +
     color = "grey"
   ) +
   labs(
-    title = "A surface map of the predicted prevalence of GAM by WFHZ"
+    title = "Surface map of the predicted prevalence of GAM by MUAC"
   ) +
+  theme_void() +
   theme(
     plot.title = element_text(colour = "#706E6D", size = 10)
-  ) +
-  theme_void()
+  )
 
 ### Interactive map ----
-auto_interp_wfhz[[1]] |>
+auto_interp_muac[[1]] |>
   mapview(
     alpha = 1,
     alpha.regions = 0.2,
-    col.regions = apply_ipc_colours(.map_type = "interactive", indicator = "wfhz"),
+    col.regions = apply_ipc_colours(.map_type = "interactive", indicator = "muac"),
     na.color = "transparent",
     trim = TRUE
   )
@@ -133,19 +131,19 @@ auto_interp_wfhz[[1]] |>
 ### -------------------------------------------- Predicting standard errors ----
 
 #### Interpolate standardized standard errors ----
-auto_zse_wfhz <- krige(
+auto_zse_muac <- krige(
   formula = zscore ~ 1, 
-  locations = cv_wfhz |> filter(!is.na(zscore)), 
+  locations = auto_cv_muac[[1]] |> filter(!is.na(zscore)), 
   nmin = 3, 
   nmax = 4, 
-  model = auto_exp_variogram_wfhz[[2]], 
+  model = auto_exp_variogram_muac[[2]], 
   newdata = grid
 )
 
 #### Surface map of standardized prediction standard errors ----
 ggplot() +
   geom_stars(
-    data = auto_zse_wfhz,
+    data = auto_zse_muac,
     aes(fill = var1.pred, x = x, y = y)
   ) +
   scale_fill_gradient2(
@@ -169,7 +167,7 @@ ggplot() +
   geom_sf_text(
     data = uga2_district,
     mapping = aes(label = factor(ADM2_EN)),
-    show.legend = TRUE,
+    show.legend = FALSE,
     color = "black",
     size = 3,
   ) +
@@ -179,7 +177,7 @@ ggplot() +
     color = "#7FB3D5",
   ) +
   labs(
-    title = "Surface map of the standardized prediction standard errors of GAM by WFHZ"
+    title = "Surface map of the standardized prediction standard errors of GAM by MUAC"
   ) +
   theme_void() +
   theme(
@@ -188,19 +186,19 @@ ggplot() +
 
 ### ------------------------------------------------------- Get areal means ----
 #### At district level (ADM2_EN) ----
-auto_pred_mean_district_wfhz <- krige(
+auto_pred_mean_district_muac <- krige(
   formula = est ~ 1,
-  locations = wrangled_wfhz,
+  locations = wrangled_muac,
   nmin = 3,
   nmax = 4,
-  model = auto_exp_variogram_wfhz[[2]],
+  model = auto_exp_variogram_muac[[2]],
   newdata = uga2_district
 ) |> 
   mutate(
     var1.pred.cat = cut(
       x = var1.pred,
-      breaks = c(-Inf, 5.0, 9.9, 14.9, 29.9, Inf),
-      labels = c("<5.0%", "5.0-9.9%", "10.0-14.9%", "15.0-29.9%", "≥30.0%"),
+      breaks = c(-Inf, 5, 10, 15, Inf),
+      labels = c("<5.0%", "5.0-9.9%", "10.0-14.9%", "≥15.0%"), 
       include.lowest = TRUE
     )
   )
@@ -208,13 +206,13 @@ auto_pred_mean_district_wfhz <- krige(
 ##### Cloropleth map of the mean predicted prevalence at district level ----
 ggplot() +
   geom_sf(
-    data = auto_pred_mean_district_wfhz,
+    data = auto_pred_mean_district_muac,
     aes(fill = var1.pred.cat),
     color = "black",
     size = 0.2
   ) +
     scale_fill_manual(
-      values = apply_ipc_colours(indicator = "wfhz", .map_type = "static"),
+      values = apply_ipc_colours(indicator = "muac", .map_type = "static"),
       name = "", 
       na.translate = FALSE
   ) +
@@ -232,7 +230,7 @@ ggplot() +
     size = 3,
   ) +
   labs(
-    title = "Mean predicted prevalence of GAM by WFHZ at district level",
+    title = "Mean predicted prevalence of GAM by MUAC at district level",
     fill = "Predicted Values"
   ) +
   theme(
@@ -241,7 +239,7 @@ ggplot() +
   theme_void()
 
 ##### Get minimum and maximum predicted prevalence values by district -----
-auto_min_max <- auto_interp_wfhz[[1]] |>
+auto_min_max_muac <- auto_interp_muac[[1]] |>
   st_as_sf() |>
   st_join(uga2_district, left = FALSE) |> # each grid cell to a polygon
   group_by(ADM2_EN) |>
@@ -251,9 +249,9 @@ auto_min_max <- auto_interp_wfhz[[1]] |>
   )
 
 ##### Compare mean predicted prevalence against original survey results -----
-auto_pred_vs_original_wfhz <- wfhz_data |>
+auto_pred_vs_original_muac <- muac_data |>
   rename(cluster = enum_area) |>
-  mw_estimate_prevalence_wfhz(
+  mw_estimate_prevalence_muac(
     wt = NULL,
     edema = child_oedema,
     .by = district
@@ -262,7 +260,7 @@ auto_pred_vs_original_wfhz <- wfhz_data |>
   arrange(factor(district)) |>
   mutate(
     survey = gam_p * 100,
-    interp = auto_pred_mean_district_wfhz[["var1.pred"]],
+    interp = auto_pred_mean_district_muac[["var1.pred"]],
     bias = interp - survey,
     min_interp = min_max$min_value,
     max_interp = min_max$max_value
@@ -270,19 +268,19 @@ auto_pred_vs_original_wfhz <- wfhz_data |>
   select(-gam_p)
 
 #### At county level (ADM4_EN) ----
-auto_pred_mean_county_wfhz <- krige(
+auto_pred_mean_county_muac <- krige(
   formula = est ~ 1,
-  locations = wrangled_wfhz,
+  locations = wrangled_muac,
   nmin = 3,
   nmax = 4,
-  model = auto_exp_variogram_wfhz[[2]],
+  model = auto_exp_variogram_muac[[2]],
   newdata = uga4_county
 ) |> 
   mutate(
     var1.pred.cat = cut(
       x = var1.pred,
-      breaks = c(-Inf, 5.0, 9.9, 14.9, 29.9, Inf),
-      labels = c("<5.0%", "5.0-9.9%", "10.0-14.9%", "15.0-29.9%", "≥30.0%"),
+      breaks = c(-Inf, 5, 10, 15, Inf),
+      labels = c("<5.0%", "5.0-9.9%", "10.0-14.9%", "≥15.0%"), 
       include.lowest = TRUE
     )
   )
@@ -290,13 +288,13 @@ auto_pred_mean_county_wfhz <- krige(
 #### Cloropleth map of the mean predicted prevalence at county level ----
 ggplot() +
   geom_sf(
-    data = auto_pred_mean_county_wfhz,
+    data = auto_pred_mean_county_muac,
     aes(fill = var1.pred.cat),
     color = "black",
     size = 0.2
   ) +
     scale_fill_manual(
-      values = apply_ipc_colours(indicator = "wfhz", .map_type = "static"),
+      values = apply_ipc_colours(indicator = "muac", .map_type = "static"),
       name = "", 
       na.translate = FALSE
   ) +

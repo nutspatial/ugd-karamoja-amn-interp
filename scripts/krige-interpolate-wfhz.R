@@ -117,31 +117,35 @@ ggplot(cv_wfhz, aes(x = var1.pred, y = observed)) +
   )
 
 ## ---- Interpolate ------------------------------------------------------------
-interp <- krige(
+interp_wfhz <- krige(
   formula = est ~ 1,
   locations = wrangled_wfhz,
   nmin = 3,
   nmax = 4,
   model = empirical_variogram_wfhz,
   newdata = grid
-)
+) |> 
+  mutate(
+    var1.pred.cat = cut(
+      x = var1.pred,
+      breaks = c(-Inf, 5.0, 9.9, 14.9, 29.9, Inf),
+      labels = c("<5.0%", "5.0-9.9%", "10.0-14.9%", "15.0-29.9%", "≥30.0%"),
+      include.lowest = TRUE
+    )
+  )
 
-### ------------------------------------------------- Visualize map surface ----
+### ------------------------------------------------- Visualize map surface ---- 
 
 #### Static map ----
 ggplot() +
   geom_stars(
-    data = interp,
-    aes(fill = var1.pred, x = x, y = y)
+    data = interp_wfhz,
+    aes(fill = var1.pred.cat, x = x, y = y)
   ) +
-  scale_fill_gradientn(
-    colors = apply_ipc_colours(),
-    na.value = "transparent",
-    name = "GAM Prevalence (%)",
-    limits = c(0, 30),
-    breaks = c(0, 5, 10, 15, 30),
-    labels = c("<5.0", "5.0-9.9", "10.0-14.9", "15.0-29.9", "≥30.0"),
-    values = scales::rescale(c(0, 5, 10, 15, 30), from = c(0, 30))
+    scale_fill_manual(
+      values = apply_ipc_colours(indicator = "wfhz", .map_type = "static"),
+      name = "", 
+      na.translate = FALSE
   ) +
   geom_sf(
     data = st_cast(uga4_county, "MULTILINESTRING"),
@@ -157,7 +161,7 @@ ggplot() +
   theme_void()
 
 ### Interactive map ----
-interp |>
+interp_wfhz |>
   mapview(
     alpha = 1,
     alpha.regions = 0.2,
@@ -225,31 +229,35 @@ ggplot() +
 ### ------------------------------------------------------- Get areal means ----
 
 #### At district level (ADM2_EN) ----
-pred_mean_admn2 <- krige(
+pred_mean_district_wfhz <- krige(
   formula = est ~ 1,
   locations = wrangled_wfhz,
   nmin = 3,
   nmax = 4,
   model = empirical_variogram_wfhz,
   newdata = uga2_district
-)
+) |> 
+  mutate(
+    var1.pred.cat = cut(
+      x = var1.pred,
+      breaks = c(-Inf, 5.0, 9.9, 14.9, 29.9, Inf),
+      labels = c("<5.0%", "5.0-9.9%", "10.0-14.9%", "15.0-29.9%", "≥30.0%"),
+      include.lowest = TRUE
+    )
+  )
 
 ##### Cloropleth map of the mean predicted prevalence at district level ----
 ggplot() +
   geom_sf(
-    data = pred_mean_admn2, 
-    aes(fill = var1.pred), 
+    data = pred_mean_district_wfhz, 
+    aes(fill = var1.pred.cat), 
     color = "black", 
     size = 0.2
   ) +
-  scale_fill_gradientn(
-    colours = apply_ipc_colours(),
-    na.value = "transparent",
-    #name = "GAM Prevalence (%)",
-    limits = c(0, 30),
-    breaks = c(0, 5, 10, 15, 30),
-    labels = c("<5.0", "5.0-9.9", "10.0-14.9", "15.0-29.9", "≥30.0"),
-    values = scales::rescale(c(0, 5, 10, 15, 30), from = c(0, 30))
+    scale_fill_manual(
+      values = apply_ipc_colours(indicator = "wfhz", .map_type = "static"),
+      name = "", 
+      na.translate = FALSE
   ) +
   geom_sf(
     data = uga2_district,
@@ -260,7 +268,7 @@ ggplot() +
   geom_sf_text(
     data = uga2_district,
     mapping = aes(label = factor(ADM2_EN)),
-    show.legend = TRUE,
+    show.legend = FALSE,
     color = "#34495E",
     size = 3,
   ) +
@@ -274,7 +282,7 @@ ggplot() +
   )
 
 ##### Get minimum and maximum predicted prevalence values by district -----
-min_max <- interp |>
+min_max <- interp_wfhz |>
   st_as_sf() |>
   st_join(uga2_district, left = FALSE) |> # each grid cell to a polygon
   group_by(ADM2_EN) |>
@@ -284,7 +292,7 @@ min_max <- interp |>
   )
 
 ##### Compare mean predicted prevalence against original survey results -----
-pred_vs_original <- wfhz_data |>
+pred_vs_original_wfhz <- wfhz_data |>
   rename(cluster = enum_area) |>
   mw_estimate_prevalence_wfhz(
     wt = NULL,
@@ -295,7 +303,7 @@ pred_vs_original <- wfhz_data |>
   arrange(factor(district)) |>
   mutate(
     survey = gam_p * 100,
-    interp = pred_mean_admn2$var1.pred,
+    interp = pred_mean_district_wfhz$var1.pred,
     bias = interp - survey,
     min_interp = min_max$min_value,
     max_interp = min_max$max_value
@@ -303,31 +311,35 @@ pred_vs_original <- wfhz_data |>
   select(-gam_p)
 
 #### At county level (ADM4_EN) ----
-pred_mean_admn4 <- krige(
+pred_mean_county_wfhz <- krige(
   formula = est ~ 1,
   locations = wrangled_wfhz,
   nmin = 3,
   nmax = 4,
   model = empirical_variogram_wfhz,
   newdata = uga4_county
-)
+) |> 
+  mutate(
+    var1.pred.cat = cut(
+      x = var1.pred,
+      breaks = c(-Inf, 5.0, 9.9, 14.9, 29.9, Inf),
+      labels = c("<5.0%", "5.0-9.9%", "10.0-14.9%", "15.0-29.9%", "≥30.0%"),
+      include.lowest = TRUE
+    )
+  )
 
 #### Cloropleth map of the mean predicted prevalence at county level ----
 ggplot() +
   geom_sf(
-    data = pred_mean_admn4,
-    aes(fill = var1.pred, name = ""),
+    data = pred_mean_county_wfhz,
+    aes(fill = var1.pred.cat),
     color = "black",
     size = 0.2
   ) +
-  scale_fill_gradientn(
-    colours = apply_ipc_colours(),
-    na.value = "transparent",
-    #name = "GAM Prevalence (%)",
-    limits = c(0, 30),
-    breaks = c(0, 5, 10, 15, 30), # Define range breakpoints
-    labels = c("<5.0", "5.0-9.9", "10.0-14.9", "15.0-29.9", "≥30.0"),
-    values = scales::rescale(c(0, 5, 10, 15, 30), from = c(0, 30))
+    scale_fill_manual(
+      values = apply_ipc_colours(indicator = "wfhz", .map_type = "static"),
+      name = "", 
+      na.translate = FALSE
   ) +
   geom_sf(
     data = uga4_county,
@@ -343,7 +355,7 @@ ggplot() +
   geom_sf_text(
     data = uga2_district,
     mapping = aes(label = factor(ADM2_EN)),
-    show.legend = TRUE,
+    show.legend = FALSE,
     color = "#34495E",
     size = 3,
   ) +
