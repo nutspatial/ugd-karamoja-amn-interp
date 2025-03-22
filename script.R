@@ -34,10 +34,10 @@ source("scripts/data-quality-check.R")
 source("scripts/wrangle-spatial-attributes.R")
 
 ## ---- Run spatial interpolation ----------------------------------------------
-source("scripts/krige-interpolate-wfhz.R")
+source("scripts/krige-interpolate-gam-wfhz.R")
 
 ## ---- Run automated spatial interpolation with `{automap}` -------------------
-source("scripts/krige-interpolate-wfhz-automap.R")
+source("scripts/krige-interpolate-gam-wfhz-automap.R")
 
 ## ---- Run automated spatial interpolation of GAM by MUAC with `{automap}` ----
-source("scripts/krige-interpolate-muac-automap.R")
+source("scripts/krige-interpolate-gam-muac-automap.R")
