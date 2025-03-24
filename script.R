@@ -25,13 +25,15 @@ for (i in list.files(path = "R", full.names = TRUE)) source(i)
 source("scripts/read-in-data.R")
 
 ## ---- Wrangle aspatial data attributes ---------------------------------------
-source("scripts/wrangle-aspatial-attributes.R")
+source("scripts/wrangle-aspatial-attributes-wfhz.R")
+source("scripts/wrangle-aspatial-attributes-muac.R")
 
 ## ---- Run data plausibility checks -------------------------------------------
 source("scripts/data-quality-check.R")
 
 ## ---- Wrangle spatial data attributes ----------------------------------------
-source("scripts/wrangle-spatial-attributes.R")
+source("scripts/wrangle-spatial-attributes-wfhz.R")
+source("scripts/wrangle-spatial-attributes-muac.R")
 
 ## ---- Run spatial interpolation ----------------------------------------------
 source("scripts/krige-interpolate-gam-wfhz.R")
