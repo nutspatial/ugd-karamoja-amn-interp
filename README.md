@@ -65,14 +65,15 @@ The following workflow is recommended:
 
 ``` mermaid
 flowchart LR
-A(Run utils.R)
-B(Run read-in-shapefiles.R)
-C(Run wrangle-aspatial-attributes.R)
-D(Run data-quality-check.R)
-E(Run wrangle-spatial-attributes.R)
-F(Run krige-interpolate-wfhz.R OR krige-interpolate-wfhz-automap)
+A(Retrieve secret key for decryption)
+B(Load project-specific functions.R)
+C(Run read-in-data.R)
+D(Run wrangle-aspatial-attributes.R)
+E(Run data-quality-check.R)
+F(Run wrangle-spatial-attributes.R)
+G(Run krige-interpolate-wfhz.R OR krige-interpolate-wfhz-automap)
 
-  A --> B --> C --> D --> E --> F
+  A --> B --> C --> D --> E --> F --> G
 ```
 
 The above flowchart can be implemented simply by running the `scrip.R`
@@ -80,19 +81,21 @@ file found in the root directory.
 
 ## Reproducibility information
 
-The repository was created in `R` version 4.4.2, and the following
-dependencies were used:  
-- `{readxl}` version 1.4.3  
-- `{dplyr}` version 1.1.4  
-- `{lubridate}` version 1.9.3  
-- `{mwana}` version 0.2.1  
-- `{sf}` version 1.0.19  
-- `{spdep}` version 1.3.10  
-- `{gstat}` version 2.1.2  
-- `{stars}` version 0.6.8  
-- `{automap}` version 1.1.16  
-- `{ggplot2}` version 3.5.1  
-- `{mapview}` version 2.11.2
+The repository was created in `R` version 4.4.2. This project uses the
+`{renv}` framework to record `R` package dependencies and versions.
+Packages and versions used are recorded in `renv.lock` and code used to
+manage dependencies is in `renv/` and other files in the root project
+directory. On starting an `R` session in the working directory, run
+`renv::restore()` to install R package dependencies.
+
+## Data encryption
+
+This project uses `{cyphr}` to encrypt the raw data that lives in
+`data-raw/` directory. In order to be able to access and decrypt the
+encrypted data, the user will need to have created their own personal
+SSH key and make a request to be added to the project. An easy-to-grasp
+guide on how to make a request will be found
+[here](https://github.com/OxfordIHTM/cyphr-encryption-demonstration#)
 
 ## License
 
@@ -102,7 +105,7 @@ This repository is licensed under a GNU General Public License 3
 ## Feedback
 
 If you wish to give feedback, file an issue or seek support, kindly do
-so [here](https://github.com/spatial/ugd-karamoja-amn-interp/issues).
+so [here](https://github.com/nutspatial/ugd-karamoja-amn-interp/issues).
 
 ## Author
 
