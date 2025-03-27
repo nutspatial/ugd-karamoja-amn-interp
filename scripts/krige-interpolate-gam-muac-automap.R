@@ -67,7 +67,7 @@ auto_cv_muac_stats <- auto_cv_muac[[1]] |>
   )
 
 ### --------------------------------------------- Plot predicted ~ observed ----
-ggplot(auto_cv_muac[[1]], aes(x = var1.pred, y = observed)) +
+uga_scatterplot_muac <- ggplot(auto_cv_muac[[1]], aes(x = var1.pred, y = observed)) +
   geom_point(size = 1.2, color = "#BA4A00") +
   geom_abline(
     intercept = 0,
@@ -83,9 +83,8 @@ ggplot(auto_cv_muac[[1]], aes(x = var1.pred, y = observed)) +
   ) +
   theme_minimal() +
   labs(
-    title = "A scatterplot of observed values against predicted",
-    x = "Predicted",
-    y = "Observed"
+    x = "Predicted GAM rate (%)",
+    y = "Observed GAM rate (%)"
   ) +
   theme(
     plot.title = element_text(size = 11),
@@ -95,7 +94,7 @@ ggplot(auto_cv_muac[[1]], aes(x = var1.pred, y = observed)) +
 ### ------------------------------------------------- Visualize map surface ----
 
 #### Static map ----
-ggplot() +
+uga_surface_muac <- ggplot() +
   geom_stars(
     data = auto_interp_muac$krige_output,
     aes(fill = var1.pred.cat, x = x, y = y)
@@ -110,22 +109,24 @@ ggplot() +
     linewidth = 0.2,
     color = "grey"
   ) +
-  labs(
-    title = "Surface map of the predicted prevalence of GAM by MUAC"
-  ) +
-  theme_void() +
-  theme(
-    plot.title = element_text(colour = "#706E6D", size = 10)
-  )
+  theme_void()
 
-### Interactive map ----
-auto_interp_muac[[1]] |>
+#### Interactive map ----
+mv_muac <- auto_interp_muac[[1]] |>
   mapview(
     alpha = 1,
     alpha.regions = 0.2,
     col.regions = apply_ipc_colours(.map_type = "interactive", indicator = "muac"),
     na.color = "transparent",
     trim = TRUE
+  )
+
+#### Save `HTML` file ----
+  mapshot2(
+    x = mv_muac,
+    title = "Interactive of the interpolated map surface of GAM by MUAC", 
+    selfcontained = TRUE,
+    url = "surface-map-GAM-by-MUAC.html"
   )
 
 ### -------------------------------------------- Predicting standard errors ----
@@ -141,7 +142,7 @@ auto_zse_muac <- krige(
 )
 
 #### Surface map of standardized prediction standard errors ----
-ggplot() +
+uga_se_muac <- ggplot() +
   geom_stars(
     data = auto_zse_muac,
     aes(fill = var1.pred, x = x, y = y)
@@ -164,6 +165,11 @@ ggplot() +
     linewidth = 0.2,
     color = "grey"
   ) +
+  geom_sf(
+    data = wrangled_wfhz,
+    size = 1.0, 
+    color = "#7FB3D5",
+  ) +
   geom_sf_text(
     data = uga2_district,
     mapping = aes(label = factor(ADM2_EN)),
@@ -171,18 +177,7 @@ ggplot() +
     color = "black",
     size = 3,
   ) +
-  geom_sf(
-    data = wrangled_wfhz,
-    size = 1.0, 
-    color = "#7FB3D5",
-  ) +
-  labs(
-    title = "Surface map of the standardized prediction standard errors of GAM by MUAC"
-  ) +
-  theme_void() +
-  theme(
-    plot.title = element_text(colour = "#706E6D", size = 11)
-  )
+  theme_void()
 
 ### ------------------------------------------------------- Get areal means ----
 #### At district level (ADM2_EN) ----
@@ -204,7 +199,7 @@ auto_pred_mean_district_muac <- krige(
   )
 
 ##### Cloropleth map of the mean predicted prevalence at district level ----
-ggplot() +
+uga_choropleth_muac_district <- ggplot() +
   geom_sf(
     data = auto_pred_mean_district_muac,
     aes(fill = var1.pred.cat),
@@ -230,11 +225,7 @@ ggplot() +
     size = 3,
   ) +
   labs(
-    title = "Mean predicted prevalence of GAM by MUAC at district level",
     fill = "Predicted Values"
-  ) +
-  theme(
-    plot.title = element_text(size = 9)
   ) +
   theme_void()
 
@@ -245,7 +236,8 @@ auto_min_max_muac <- auto_interp_muac[[1]] |>
   group_by(ADM2_EN) |>
   summarise(
     min_value = min(var1.pred, na.rm = TRUE),
-    max_value = max(var1.pred, na.rm = TRUE)
+    max_value = max(var1.pred, na.rm = TRUE), 
+    median = median(var1.pred, na.rm = TRUE)
   )
 
 ##### Compare mean predicted prevalence against original survey results -----
@@ -262,8 +254,9 @@ auto_pred_vs_original_muac <- muac_data |>
     survey = gam_p * 100,
     interp = auto_pred_mean_district_muac[["var1.pred"]],
     bias = interp - survey,
-    min_interp = min_max$min_value,
-    max_interp = min_max$max_value
+    min_interp = auto_min_max_muac$min_value,
+    max_interp = auto_min_max_muac$max_value, 
+    median_interp = auto_min_max_muac$median
   ) |>
   select(-gam_p)
 
@@ -286,7 +279,7 @@ auto_pred_mean_county_muac <- krige(
   )
 
 #### Cloropleth map of the mean predicted prevalence at county level ----
-ggplot() +
+uga_choropleth_muac_county <- ggplot() +
   geom_sf(
     data = auto_pred_mean_county_muac,
     aes(fill = var1.pred.cat),
@@ -316,11 +309,6 @@ ggplot() +
     color = "#34495E",
     size = 3,
   ) +
-  labs(
-    title = "Mean predicted prevalence of GAM by WFHZ at county level"
-  ) +
-  theme(
-    plot.title = element_text(size = 8)
-  ) +
   theme_void()
+
 ################################ End of workflow ###############################

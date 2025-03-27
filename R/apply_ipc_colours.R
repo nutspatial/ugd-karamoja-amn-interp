@@ -46,9 +46,9 @@ if (.map_type == "static") {
     }
   )
 } else {
-  x <- colorRampPalette(
+  x <- adjustcolor(colorRampPalette(
     c("#CDFACD", "#FAE61E", "#E67800", "#C80000", "#640000")
-  )(5)
+  )(5), alpha.f = 0.2)
 }
 x
 }

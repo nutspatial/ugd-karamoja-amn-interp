@@ -2,7 +2,8 @@ project:
   type: default
   output-dir: reports
   
-revealjs:
+format:
+  revealjs:
      theme: default
      embed-resources: true
      width: 1280
@@ -20,6 +21,3 @@ revealjs:
      progress: true
      transition: fade
      fig-responsive: true
-
-bibliography: references.bib
-cls: harvard-cite-them-right-11th-edition.csl

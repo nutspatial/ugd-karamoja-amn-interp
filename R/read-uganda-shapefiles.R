@@ -30,7 +30,8 @@ read_uga_shp <- function(path_to_zip,
         x = paste0("uga", x),
         value = sf::st_read(
           dsn = exdir, 
-          layer = paste0("uga_admbnda_adm", x, "_ubos_20200824") 
+          layer = paste0("uga_admbnda_adm", x, "_ubos_20200824"), 
+          quiet = TRUE 
         )
       )
     }
