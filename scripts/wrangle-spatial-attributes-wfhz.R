@@ -107,7 +107,7 @@ ggplot(data = uga2_district) +
   geom_sf(
     data = uga4_county,
     fill = NA,
-    color = "#F2F3F4"
+    color = "#768492"
   ) +
   geom_sf(
     data = wrangled_wfhz,
@@ -117,18 +117,10 @@ ggplot(data = uga2_district) +
     values = apply_ipc_colours(indicator = "wfhz", .map_type = "static"),
     name = "Raw rates"
   ) +
-  theme_void() +
-  labs(
-    title = "Spatial distribution GAM rates by sampling points across the Karamoja region",
-    subtitle = "Raw rates: cases / total number of children surveyed"
-  ) +
-  theme(
-    plot.title = element_text(size = 11),
-    plot.subtitle = element_text(size = 9, colour = "#706E6D")
-  )
+  theme_void()
 
 ### ------------------------------------------------------------ Plot SEBSR ----
-ggplot(data = uga2_district) +
+uga_sampling_points <- ggplot(data = uga2_district) +
   geom_sf(
     fill = "white",
     color = "#3F4342",
@@ -137,7 +129,7 @@ ggplot(data = uga2_district) +
   geom_sf(
     data = uga4_county,
     fill = NA,
-    color = "#F2F3F4"
+    color = "#768492"
   ) +
   geom_sf(
     data = wrangled_wfhz,
@@ -145,16 +137,8 @@ ggplot(data = uga2_district) +
   ) +
   scale_color_manual(
     values = apply_ipc_colours(indicator = "wfhz", .map_type = "static"),
-    name = "Smoothed rates"
+    name = "GAM rates"
   ) +
-  theme_void() +
-  labs(
-    title = "Spatial distribution of smoothed GAM rates by sampling points across the Karamoja region",
-    subtitle = "Rates smoothed using Spatial Empirical Bayesian"
-  ) +
-  theme(
-    plot.title = element_text(size = 10),
-    plot.subtitle = element_text(size = 9, colour = "#706E6D")
-  )
+  theme_void()
 
 ################################ End of workflow ###############################

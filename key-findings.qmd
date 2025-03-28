@@ -1,0 +1,437 @@
+---
+title: Enhancing the ability to tell "where" acute malnutrition is of concern
+subtitle: Results from a quest using probaility proportional to the size of the populaton-based survey data
+author: Tomás Zaba
+date: today
+format: revealjs
+---
+
+```{r}
+#| label: set-up
+#| include: false
+Sys.setenv(path_secret_key = "~/.ssh/id_rsa")
+library(kableExtra)
+source("script.R")
+```
+
+# Introduction
+## {.smaller}
+### Why Spatial Analysis? 
+
+<br> 
+
+::: {.incremental}
+
++ To provide **actionable** information on where. 
++ Currently, when an analysis is done, the whole polygon is classified as one, hidding the spatial variation of acute malnutriton. 
++ Currently protocols try to address this need by: 
+<br> 
+
+  + Guiding users to disaggregate surveys when DEFF is >= 1.3 (heterogenous distribution across surveyed areas)
+  + This is includes during the FRC reviews
+
++ However, still not effective and efficient in providing actionable information to the IPC end-users. 
+
++ It does not inform targetting (of resources and reach of those of uptmost need of treatment)
+::: 
+
+## {.smaller}
+### We need a spatial dimension... 
+
+...Why? 
+
+:::{.incremental}
+
++ Our analysis inform life-saving interventions, particularly in high-vulnerable countries;
++ Countries struggle to identify the most in need population that should be served first. 
+  + Different strategies are adopted to define within district/county/etc targetting. 
+  + These are based on empirical knowledge, **not evidence-based**. 
+
+::: 
+
+A few examples: 
+
+:::{.incremental}
+
+:::{.callout-note}
+## Somalia: The Operational Priority Areas (OPA)
+
++ Step 1: ranking of districts with the highest IPC Phase to lowest
++ Step 2: withing district targeting is further based on two criteria: (i) most common vulnerable livelihood zones; (ii) high population density zones.
+
+:::
+::: 
+
+:::{.incremental}
+:::{.callout-note}
+## Mozambique: Farthest Communities Are Most Vulnerable
+
++ Targeting involves selecting the communities located farthest from the district center, based on the assumption that these areas have limited access to basic services and are therefore the most vulnerable. 
+:::
+:::
+
+
+## {.smaller}
+### So what...? 
+
++ ...while the strategies are logical, is not always true and predictable due to 
+the complexity and wide-ranging factors that leads to acute malnutrition. 
+
++ Enhancing the ability to pinpoint where acute malnutrition is a concern within the IPC framework would significantly strengthen its role in providing life-saving information.  
+
+On this regard, I conducted an operational research that consisted in: 
+
+ + Predict the prevalence of acute malnutrition in unsurveyed or unsampled locations by leveraging data from surveyed locations → **spatial interpolation**. 
+
+Based on the first law of geography: 
+
+> "Nearby things are more similar than distant things."
+>
+> Toble W. (1970)
+
+<br> 
+
+We do apply this law in our protocols -> **protocols for similar areas**
+
+##
+### Questions 🧐
+
+1. Does spatial interpolation produce reliable (precise and accurate) estimates using small 
+scale survey data, such as district level surveys? 
+
+<br> 
+
+2. How comparable the predicted estimates can be against the observed prevalence 
+estimates of the original survey results?
+
+
+# Data & Preparation  
+
+##
+### Data Source {.smaller}
+
+Two exampe datasets used: 
+
+<br> 
+
+1. Nine district-level SMART surveys conducted in 9 districts of **Karamoja Region, Uganda**.
+    + Data collected in April 2021
+
+<br> 
+
+2. Locality-level SMART surveys conducted in **North Darfur, Sudan**
+    + Data collected in October 2024 (See the other presentation on this)
+
+##
+### Data Wrangling  {.smaller}
+
+:::: {.columns}
+
+::: {.column width="50%" style="text-align: left;"}
+### Aspatial
+
+```{mermaid}
+%%| label: wrangling-workflow-aspatial
+flowchart TD
+
+A(WFHZ)
+B(MUAC)
+C(Exclude rows with missing GPS coord.)
+D(Calculate WFHZ and define AMN)
+E(Remove outliers)
+F(Calculate MFAZ and define AMN)
+G(Remove outliers)
+H(Get % aggregated at cluster ID)
+
+A --> C --> D --> E --> H
+B --> C --> F --> G --> H
+```
+:::
+
+::: {.column style="text-align: right;"}
+### Spatial
+
+```{mermaid}
+%%| label: wrangling-workflow-spatial
+flowchart TD
+
+A(Set CRS and/reproject CRS)
+B(Get mean GPS coord. by cluster ID)
+C(Calculate spatial weights)
+D(Smooth rates)
+E(Krige)
+
+A --> B --> C --> D --> E
+```
+:::
+::::
+
+## {.smaller}
+### Assessment of Model-fit 
+#### Cross-validation: *leave-one-out* resampling method
+
+![](cross-validation-leave-one-out.png)
+source: [ArcGIS Pro](https://pro.arcgis.com/en/pro-app/latest/help/analysis/geostatistical-analyst/performing-cross-validation-and-validation.html) 
+
+<br> 
+
+#### How does it work?
+
++ After estimating the interpolation model from all blue points, the
+value of the red point is hidden, and the remaining points are used to predict the value of the hidden point. The prediction is then compared to the measured value. This process repeats for all 10 points.
+
+# Results
+
+## {.smaller}
+### Spatial Variation of GAM by WFHZ
+```{r}
+#| label: interp-surface-maps-wfhz
+#| layout-ncol: 4
+#| layout-nrow: 1
+#| fig-width: 6
+#| fig-height: 11
+#| fig-align: "center"
+#| fig-dpi: 100
+#| fig-subcap: 
+#|   - "Survey sampling points"
+#|   - "Predicted surface map"
+#|   - "Choropleth map: County"
+#|   - "Choropleth map: District"
+
+uga_sampling_points
+uga_surface_wfhz
+uga_choropleth_wfhz_county
+uga_choropleth_wfhz_district
+```
+
+## {.smaller}
+### Predicted Estimates of GAM by WFHZ
+
+```{r}
+#| label: predicted-estimates-wfhz
+pred_vs_original_wfhz |> 
+  mutate(across(.cols = 2:7, \(.) round(., 2))) |> 
+  rename(
+    `Observed prevalence (%)` = survey,
+    `Predicted prevalence (%)` = interp,
+    `Minimum prevalence (%)` = min_interp,
+    `Maximum prevalence (%)` = max_interp,
+    `Median prevalence (%)` = median_interp
+  ) |> 
+    kable(
+      format = "html",
+      align = "c", 
+      caption = "Observed district prevalence estimates vs predicted prevalence"
+    )
+```
+
+## {.smaller}
+### Did the Model Fit the Data?
+Predicted rates in the cross-validation results against the observed rates 
+
+:::: {.columns}
+
+::: {.column width="80%"}
+
+```{r}
+#| label: cross-validation-wfhz
+#| fig-height: 5.9
+#| fig-align: left
+uga_scatterplot_wfhz
+```
+:::
+
+::: {.column width="20%"}
+
+<br>
+
+`r paste("R² =", round(cv_wfhz_stats$r2_obspred, 3))`
+
++ Positive and strong correlation
+
+:::
+::::
+
+## {.smaller}
+### Spatial Variation of GAM by MUAC
+```{r}
+#| label: interp-surface-maps-muac
+#| layout-ncol: 4
+#| layout-nrow: 1
+#| fig-width: 8
+#| fig-height: 15
+#| fig-align: "center"
+#| fig-dpi: 100
+#| fig-subcap: 
+#|   - "Survey sampling points"
+#|   - "Predicted surface map"
+#|   - "Choropleth map: County"
+#|   - "Choropleth map: District"
+
+uga_sampling_points_muac
+uga_surface_muac
+uga_choropleth_muac_county
+uga_choropleth_muac_district
+```
+
+## {.smaller}
+### Predicted Estimates of GAM by MUAC
+
+```{r}
+#| label: predicted-estimates-muac
+auto_pred_vs_original_muac |> 
+  mutate(across(.cols = 2:7, \(.) round(., 2))) |> 
+  rename(
+    `Observed prevalence (%)` = survey,
+    `Predicted prevalence (%)` = interp,
+    `Minimum prevalence (%)` = min_interp,
+    `Maximum prevalence (%)` = max_interp,
+    `Median prevalence (%)` = median_interp
+  ) |> 
+    kable(
+      format = "html",
+      align = "c", 
+      caption = "Observed district prevalence estimates vs predicted prevalence"
+    )
+```
+
+## {.smaller}
+### Did the Model fit the Data?
+
+:::: {.columns}
+
+::: {.column width="80%"}
+
+```{r}
+#| label: cross-validation-muac
+#| fig-height: 5.6
+#| fig-align: left
+uga_scatterplot_muac
+```
+:::
+
+::: {.column width="20%"}
+`r paste("R² =", round(auto_cv_muac_stats$r2_obspred, 3))`
+
++ Positive and strong correlation
+:::
+::::
+
+# Uncertainty
+What influences high uncertainty? 
+
+## {.smaller}
+### Standardized Prediction Standard Errors
+
+$Zscore = \frac{\text{Prediction} - \text{Observed Value}}{\text{Kriging Standard Errors}}$
+
+:::: {.columns}
+
+::: {.column width="50%" style="text-align: left;"}
+GAM by WFHZ
+```{r}
+#| label: standard-errors-wfhz
+#| fig-width: 6.9
+#| fig-height: 6.7
+uga_se_wfhz
+```
+:::
+
+::: {.column}
+GAM by MUAC
+```{r}
+#| label: standard-errors-muac
+#| fig-width: 6.9
+#| fig-height: 6.7
+uga_se_muac
+```
+:::
+::::
+
+##
+**Interpretation**
+
++ *Z = 0*: prediction is **exactly equal** to the observed value
++ Positive *Z*: prediction is **higher** to the observed value.
++ Negative *Z*: prediction is **lower** to the observed value. 
+
+It basically tells **how many standard deviations away** the predicted value is from the observed value.
+
++ `r paste("'> -3 *Z* < -3'")` 👍 
+
+# Limitations 
+
+## {.smaller} 
+
+<br> 
+
++ The more sampling points are clustered together (as seen in Kaabong district) rather than spatially dispersed (as in Nakapiripirit district), the higher the uncertainty. This is due to large areas without direct observations, forcing the model to extrapolate based on nearby values. In such cases, predictions in unsampled locations rely on neighboring observations from the model’s previous estimates. 
+
++ The tendency for sampled clusters to be concentrated in specific geographic areas rather than evenly distributed across the surveyed region is an inherent characteristic of PPS-based surveys. These surveys allocate more clusters to densely populated areas and fewer to sparsely populated regions. 
+
+  + As a result, varying levels of confidence in predictions should be expected when performing spatial interpolation with PPS-based surveys. Unlike surveys using spatial sampling methods, PPS-based surveys do not ensure an even spatial distribution of clusters, leading to areas with higher uncertainty in predictions.
+
+# Actionable Insights
+
+## 
+
+<br>
+
++ 	Based on the results, spatial interpolation using PPS-based survey data (e.g., SMART) appears to generate reliable estimates for decision-making. 
+    - However, this could be due to chance. **Further validation with additional data is necessary**.
+
+## Actionable Insights for Standard IPC analyses {.smaller}
+
+<br>
+
+:::{.incremental}
+
++ The results may provide a better approach for identifying hotspots and guiding program targeting. 
+
++ Predicting results at lower administrative levels could be a breakthrough in estimating the number of children in need of treatment. This is particularly relevant when surveys are conducted at higher administrative levels, such as in Somalia, where assessments are done by livelihood zones rather than districts or counties. 
+
++ This approach could also offer a more effective alternative to the current method used in IPC AMN protocols, where surveys must be disaggregated when the design effect (DEFF) exceeds 1.3, requiring at least five clusters and 100 observations.
+
+:::
+
+## Actionable Insights for FRC Reviews {.smaller} 
+
+<br>
+
+Results appear/may be a better solution for looking into/highlighting hotspots and inform programme targeting. 
+
++ Possible advantages
+  + Affected countries would be able to tell **where** to prioritize/target. 
+
++ Possible disadvantages
+  + I do not see relevant compared to the advantages.
+
+## Actionable Insights for Risk Analysis {.smaller} 
+
+<br>
+
+By highlighting areas that are more affected than others,
+
++ It provides a clear indication of regions on the brink of crossing IPC AMN Phase 5 thresholds, enabling increased monitoring of risk factors. 
+
++ It helps identify locations where localized SMART surveys may be necessary for a more precise assessment. 
+
+## Next steps {.smaller} 
+
+<br>
+
+The approach needs to be validated with more data. 
+
++ SMART or other representative survey data. 
+    - Can be district/county/locality-specific survey or 
+    - Can be a regional/province/higher administrative level survey with interpolation to lower admin levels (e.g., the case Belihu mentioned yesterday)
+    - Could also be tested using South Sudan FSNMS data, where only a few (9) clusters per county are sampled, but data is aggregated at the state or domain level for analysis.  
+
++ Sentinel sites data:
+  - Available options: 
+    - Kenya NDMA sentinel site data, which includes GPS coordinates. (Access to this data must be requested from the Kenya NDMA authority.). 
+
++ Explore alternative modeling approaches to improve estimates: 
+  - Gaussian process regression
+  - Model actual weight-for-height or MUAC data instead of GAM rates (both in Kriging and Gaussian process models)
+

@@ -11,6 +11,7 @@ library(ggplot2)
 library(mapview)
 library(janitor)
 library(cyphr)
+library(webshot2)
 
 ## ---- Set global options and global enviroment variables ---------------------
 options(timeout = 300) ## increase timeout for downloads to 300 seconds

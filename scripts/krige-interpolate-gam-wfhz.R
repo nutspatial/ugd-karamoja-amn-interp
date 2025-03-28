@@ -91,7 +91,7 @@ cv_wfhz_stats <- cv_wfhz |>
   )
 
 ### --------------------------------------------- Plot predicted ~ observed ----
-ggplot(cv_wfhz, aes(x = var1.pred, y = observed)) +
+uga_scatterplot_wfhz <- ggplot(cv_wfhz, aes(x = var1.pred, y = observed)) +
   geom_point(size = 1.2, color = "#BA4A00") +
   geom_abline(
     intercept = 0,
@@ -107,13 +107,8 @@ ggplot(cv_wfhz, aes(x = var1.pred, y = observed)) +
   ) +
   theme_minimal() +
   labs(
-    title = "A scatterplot of observed values against predicted",
-    x = "Predicted",
-    y = "Observed"
-  ) +
-  theme(
-    plot.title = element_text(size = 11),
-    plot.subtitle = element_text(size = 9, colour = "#706E6D")
+    x = "Predicted GAM rate (%)",
+    y = "Observed GAM rate (%)"
   )
 
 ## ---- Interpolate ------------------------------------------------------------
@@ -137,7 +132,7 @@ interp_wfhz <- krige(
 ### ------------------------------------------------- Visualize map surface ---- 
 
 #### Static map ----
-ggplot() +
+uga_surface_wfhz <- ggplot() +
   geom_stars(
     data = interp_wfhz,
     aes(fill = var1.pred.cat, x = x, y = y)
@@ -152,23 +147,31 @@ ggplot() +
     linewidth = 0.2,
     color = "grey"
   ) +
-  labs(
-    title = "A surface map of the predicted prevalence of GAM by WHZ"
-  ) +
-  theme(
-    plot.title = element_text(colour = "#706E6D", size = 10)
-  ) +
+  # labs(
+  #   title = "A surface map of the predicted prevalence of GAM by WHZ"
+  # ) +
+  # theme(
+  #   plot.title = element_text(colour = "#706E6D", size = 10)
+  # ) +
   theme_void()
 
-### Interactive map ----
-interp_wfhz |>
-  mapview(
+#### Interactive map ----
+mv_wfhz <- interp_wfhz |>
+  mapView(
     alpha = 1,
-    alpha.regions = 0.2,
+    alpha.regions = 0.8,
     col.regions = apply_ipc_colours(.map_type = "interactive", indicator = "wfhz"),
     na.color = "transparent",
     trim = TRUE
   )
+
+#### Save `HTML` file ----
+mapshot2(
+  x = mv_wfhz,
+  title = "Interactive of the interpolated map surface of GAM by WFHZ", 
+  selfcontained = TRUE,
+  url = "surface-map-GAM-by-WFHZ.html"
+)
 
 ### -------------------------------------------- Prediction standard errors ----
 
@@ -183,7 +186,7 @@ zse_wfhz <- krige(
 )
 
 #### Surface map of prediction standard errors ----
-ggplot() +
+uga_se_wfhz <- ggplot() +
   geom_stars(
     data = zse_wfhz,
     aes(fill = var1.pred, x = x, y = y)
@@ -206,6 +209,11 @@ ggplot() +
     linewidth = 0.2,
     color = "grey"
   ) +
+  geom_sf(
+    data = wrangled_wfhz,
+    size = 1.0, 
+    color = "#7FB3D5",
+  ) +
   geom_sf_text(
     data = uga2_district,
     mapping = aes(label = factor(ADM2_EN)),
@@ -213,18 +221,7 @@ ggplot() +
     color = "black",
     size = 3,
   ) +
-  geom_sf(
-    data = wrangled_wfhz,
-    size = 1.0, 
-    color = "#7FB3D5",
-  ) +
-  labs(
-    title = "Surface map of the standardized prediction standard errors of GAM by WFHZ"
-  ) +
-  theme_void() +
-  theme(
-    plot.title = element_text(colour = "#706E6D", size = 11)
-  )
+  theme_void()
 
 ### ------------------------------------------------------- Get areal means ----
 
@@ -246,8 +243,8 @@ pred_mean_district_wfhz <- krige(
     )
   )
 
-##### Cloropleth map of the mean predicted prevalence at district level ----
-ggplot() +
+##### Choropleth map of the mean predicted prevalence at district level ----
+uga_choropleth_wfhz_district <- ggplot() +
   geom_sf(
     data = pred_mean_district_wfhz, 
     aes(fill = var1.pred.cat), 
@@ -272,14 +269,7 @@ ggplot() +
     color = "#34495E",
     size = 3,
   ) +
-  labs(
-    title = "Mean predicted prevalence of GAM by WFHZ at district level", 
-    fill = ""
-  ) +
-  theme_void() +
-  theme(
-    plot.title = element_text(size = 11, colour = "#706E6D")
-  )
+  theme_void()
 
 ##### Get minimum and maximum predicted prevalence values by district -----
 min_max <- interp_wfhz |>
@@ -288,7 +278,8 @@ min_max <- interp_wfhz |>
   group_by(ADM2_EN) |>
   summarise(
     min_value = min(var1.pred, na.rm = TRUE),
-    max_value = max(var1.pred, na.rm = TRUE)
+    max_value = max(var1.pred, na.rm = TRUE), 
+    median = median(var1.pred, na.rm = TRUE)
   )
 
 ##### Compare mean predicted prevalence against original survey results -----
@@ -306,7 +297,8 @@ pred_vs_original_wfhz <- wfhz_data |>
     interp = pred_mean_district_wfhz$var1.pred,
     bias = interp - survey,
     min_interp = min_max$min_value,
-    max_interp = min_max$max_value
+    max_interp = min_max$max_value,
+    median_interp = min_max$median
   ) |>
   select(-gam_p)
 
@@ -329,7 +321,7 @@ pred_mean_county_wfhz <- krige(
   )
 
 #### Cloropleth map of the mean predicted prevalence at county level ----
-ggplot() +
+uga_choropleth_wfhz_county <- ggplot() +
   geom_sf(
     data = pred_mean_county_wfhz,
     aes(fill = var1.pred.cat),
@@ -359,13 +351,6 @@ ggplot() +
     color = "#34495E",
     size = 3,
   ) +
-  labs(
-    title = "Mean predicted prevalence of GAM by WFHZ at county level", 
-    fill = ""
-  ) +
-  theme_void() +
-  theme(
-    plot.title = element_text(size = 11, colour = "#706E6D")
-  )
+  theme_void()
 
 ################################ End of workflow ###############################

@@ -47,19 +47,7 @@ data-fig-align="center" width="300" />
 - `raw-data/`: a data frame of the input data. This is encrypted.
 - `R/`: some handy user-defined functions.
 - `scripts/`: a set of `R` scripts. These are split into different
-  files, based on the specific task that they execute:
-  - `data-quality-check.R`: plausibility check of anthropometric
-    measurements.
-  - `krige-interpolate-wfhz-automap.R`: spatial interpolation through
-    automatic model construction.
-  - `krige-interpolate-wfhz.R`: spatial interplolation through “manual”
-    model construction.
-  - `read-in-shapefiles.R`: reads the `.shp` shapefiles of the study
-    area and sets the area coordinate reference system.
-  - `wrangle-aspatial-attributes.R`: wrangles the anthropometric data to
-    be fed into the spatial models.
-  - `wrangle-spatial-attributes.R`: wrangles spatial attributes of the
-    raw data to be fed into the spatial models.
+  files, based on the specific task that they execute.
 
 The following workflow is recommended:
 
