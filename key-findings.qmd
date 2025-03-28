@@ -1,6 +1,6 @@
 ---
 title: Enhancing the ability to tell "where" acute malnutrition is of concern
-subtitle: Results from a quest using probaility proportional to the size of the populaton-based survey data from Karamoja, Uganda and North Darfur, Sudan
+subtitle: Results from a quest using probaility proportional to the size of the populaton-based survey data
 author: Tomás Zaba
 date: today
 format: revealjs
@@ -64,9 +64,9 @@ A few examples:
 
 :::{.incremental}
 :::{.callout-note}
-## Mozambique: farthest communities are most vulnerable
+## Mozambique: Farthest Communities Are Most Vulnerable
 
-+ Targeting consists in selecting the farthest communities away from the center of the district, on the assumption that they are underserved with basic services, therefore most vulnerable. 
++ Targeting involves selecting the communities located farthest from the district center, based on the assumption that these areas have limited access to basic services and are therefore the most vulnerable. 
 :::
 :::
 
@@ -77,13 +77,13 @@ A few examples:
 + ...while the strategies are logical, is not always true and predictable due to 
 the complexity and wide-ranging factors that leads to acute malnutrition. 
 
-+ Enhancing the ability to tell **where** acute malnutrition is of concern in IPC would enhance its crucial contribution in providing information to save lives.  
++ Enhancing the ability to pinpoint where acute malnutrition is a concern within the IPC framework would significantly strengthen its role in providing life-saving information.  
 
 On this regard, I conducted an operational research that consisted in: 
 
- + Predict the prevalence of acute malnutrition to unsurveyed/sampled localitions based on the use of data from sampled locations -> **spatial interpolation**. 
+ + Predict the prevalence of acute malnutrition in unsurveyed or unsampled locations by leveraging data from surveyed locations → **spatial interpolation**. 
 
-Based on the first law of geography and of spatial epidemiology: 
+Based on the first law of geography: 
 
 > "Nearby things are more similar than distant things."
 >
@@ -120,7 +120,7 @@ Two exampe datasets used:
 <br> 
 
 2. Locality-level SMART surveys conducted in **North Darfur, Sudan**
-    + Data collected in October 2024
+    + Data collected in October 2024 (See the other presentation on this)
 
 ##
 ### Data Wrangling  {.smaller}
@@ -365,9 +365,11 @@ It basically tells **how many standard deviations away** the predicted value is 
 
 <br> 
 
-+ While the mean predicted prevalence shows to be concise and consistent between the district and
-regional prediction models, as well as in most of times nearly equal the observed prevalence in
-the original survey
++ The more sampling points are clustered together (as seen in Kaabong district) rather than spatially dispersed (as in Nakapiripirit district), the higher the uncertainty. This is due to large areas without direct observations, forcing the model to extrapolate based on nearby values. In such cases, predictions in unsampled locations rely on neighboring observations from the model’s previous estimates. 
+
++ The tendency for sampled clusters to be concentrated in specific geographic areas rather than evenly distributed across the surveyed region is an inherent characteristic of PPS-based surveys. These surveys allocate more clusters to densely populated areas and fewer to sparsely populated regions. 
+
+  + As a result, varying levels of confidence in predictions should be expected when performing spatial interpolation with PPS-based surveys. Unlike surveys using spatial sampling methods, PPS-based surveys do not ensure an even spatial distribution of clusters, leading to areas with higher uncertainty in predictions.
 
 # Actionable Insights
 
@@ -384,11 +386,11 @@ the original survey
 
 :::{.incremental}
 
-+ Results appear/may be a better solution for looking into/highlighting hotspots and inform programme targeting. 
++ The results may provide a better approach for identifying hotspots and guiding program targeting. 
 
-+ Predicted results at a lower administrative level could be a breakthrough to estimating children in need of treament using district/county/locality-specific prevalence, when surveys are done at higher administrative level - the case of Somalia where surveys are done a livelihood zones. 
++ Predicting results at lower administrative levels could be a breakthrough in estimating the number of children in need of treatment. This is particularly relevant when surveys are conducted at higher administrative levels, such as in Somalia, where assessments are done by livelihood zones rather than districts or counties. 
 
-+ Results could also be a better solution than the current approach in the IPC AMN protocols where surveys should be disaggregated when DEFF >1.3 with 5 clusters and at least 100 obs.
++ This approach could also offer a more effective alternative to the current method used in IPC AMN protocols, where surveys must be disaggregated when the design effect (DEFF) exceeds 1.3, requiring at least five clusters and 100 observations.
 
 :::
 
@@ -408,22 +410,28 @@ Results appear/may be a better solution for looking into/highlighting hotspots a
 
 <br>
 
-By highlithing areas that more affected than other: 
+By highlighting areas that are more affected than others,
 
-+ Will ensure to tell clearly areas that are on the brink of crossing IPC AMN Phase 5 thresholds, hence increased monitoring of the risk factors. 
++ It provides a clear indication of regions on the brink of crossing IPC AMN Phase 5 thresholds, enabling increased monitoring of risk factors. 
+
++ It helps identify locations where localized SMART surveys may be necessary for a more precise assessment. 
 
 ## Next steps {.smaller} 
 
 <br>
 
-The approach need to be validated with more data. 
+The approach needs to be validated with more data. 
 
-+ SMART or othe representative survey data. 
++ SMART or other representative survey data. 
     - Can be district/county/locality-specific survey or 
-    - Regional/province/higher admin level survey and interpolate to lower admin levels.
-    - Can also try to model using South Sudan FSNMS data where few (9) clusters are sampled in each county and then aggregated at State or domain level for analysis.  
+    - Can be a regional/province/higher administrative level survey with interpolation to lower admin levels (e.g., the case Belihu mentioned yesterday)
+    - Could also be tested using South Sudan FSNMS data, where only a few (9) clusters per county are sampled, but data is aggregated at the state or domain level for analysis.  
 
 + Sentinel sites data:
   - Available options: 
-    - Kenya NDMA sentinel site data: they collect GPS coordinates. Access to data must be requested to the Kenya NDMA authority. 
+    - Kenya NDMA sentinel site data, which includes GPS coordinates. (Access to this data must be requested from the Kenya NDMA authority.). 
+
++ Explore alternative modeling approaches to improve estimates: 
+  - Gaussian process regression
+  - Model actual weight-for-height or MUAC data instead of GAM rates (both in Kriging and Gaussian process models)
 
