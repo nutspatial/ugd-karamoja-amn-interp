@@ -67,13 +67,13 @@ wrangled_muac <- wrangled_muac |>
     sebsr_cat = cut(
       x = est,
       breaks = c(-Inf, 5, 9, 14.9, Inf),
-      labels = c("<5.0%", "5.0-9.0%", "10.0-14.9%", "≥15.0%"),
+      labels = c("<5.0%", "5.0-9.9%", "10.0-14.9%", "≥15.0%"),
       include.lowest = TRUE
     ),
     raw_cat = cut(
       x = raw,
       breaks = c(-Inf, 5, 9, 14.9, Inf),
-      labels = c("<5.0%", "5.0-9.0%", "10.0-14.9%", "≥15.0%"),
+      labels = c("<5.0%", "5.0-9.9%", "10.0-14.9%", "≥15.0%"),
       include.lowest = TRUE
     )
   )
