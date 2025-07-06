@@ -167,6 +167,16 @@ A --> B --> C --> D --> E
 ::::
 
 ## {.smaller}
+
+:::{layout-ncol=3}
+![](data-raw/grid/polygon.png)
+
+![](data-raw/grid/grid-cells.png)
+
+![](data-raw/grid/image.png)
+:::
+
+## {.smaller}
 ### Assessment of Model-fit 
 #### Cross-validation: *leave-one-out* resampling method
 
@@ -317,47 +327,6 @@ uga_scatterplot_muac
 :::
 ::::
 
-# Uncertainty
-What influences high uncertainty? 
-
-## {.smaller}
-### Standardized Prediction Standard Errors
-
-$Zscore = \frac{\text{Prediction} - \text{Observed Value}}{\text{Kriging Standard Errors}}$
-
-:::: {.columns}
-
-::: {.column width="50%" style="text-align: left;"}
-GAM by WFHZ
-```{r}
-#| label: standard-errors-wfhz
-#| fig-width: 6.9
-#| fig-height: 6.7
-uga_se_wfhz
-```
-:::
-
-::: {.column}
-GAM by MUAC
-```{r}
-#| label: standard-errors-muac
-#| fig-width: 6.9
-#| fig-height: 6.7
-uga_se_muac
-```
-:::
-::::
-
-##
-**Interpretation**
-
-+ *Z = 0*: prediction is **exactly equal** to the observed value
-+ Positive *Z*: prediction is **higher** to the observed value.
-+ Negative *Z*: prediction is **lower** to the observed value. 
-
-It basically tells **how many standard deviations away** the predicted value is from the observed value.
-
-+ `r paste("'> -3 *Z* < -3'")` 👍 
 
 # Limitations 
 
@@ -370,6 +339,20 @@ It basically tells **how many standard deviations away** the predicted value is 
 + The tendency for sampled clusters to be concentrated in specific geographic areas rather than evenly distributed across the surveyed region is an inherent characteristic of PPS-based surveys. These surveys allocate more clusters to densely populated areas and fewer to sparsely populated regions. 
 
   + As a result, varying levels of confidence in predictions should be expected when performing spatial interpolation with PPS-based surveys. Unlike surveys using spatial sampling methods, PPS-based surveys do not ensure an even spatial distribution of clusters, leading to areas with higher uncertainty in predictions.
+
+## Spatial Sampling {.smaller}
+
+<br>
+
+::: {.columns layout-ncol=3 style="text-align: center;"}
+
+![Find a map](data-raw/grid/s3msampling.png)
+
+![Make even spread sampling points](data-raw/grid/even-spread-spoints.png)
+
+![Select communities to survey](data-raw/grid/select-communities.png)
+
+:::
 
 # Actionable Insights
 
@@ -417,8 +400,6 @@ By highlighting areas that are more affected than others,
 + It helps identify locations where localized SMART surveys may be necessary for a more precise assessment. 
 
 ## Next steps {.smaller} 
-
-<br>
 
 The approach needs to be validated with more data. 
 
