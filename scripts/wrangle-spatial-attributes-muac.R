@@ -1,6 +1,6 @@
-################################################################################
-#             WORKFLOW TO WRANGLE DATA THROUGH SPATIAL ATTRIBUTES              #
-################################################################################
+# ==============================================================================
+#             WORKFLOW TO WRANGLE DATA THROUGH SPATIAL ATTRIBUTES              
+# ==============================================================================
 
 ## ---- Set data as an `sf` object and reproject CRS (MUAC) --------------------
 
@@ -15,6 +15,7 @@ muac <- muac_data |>
   st_set_crs(value = "EPSG:4326")
 
 ## ---- Workflow to calculate Spatial Empirical Bayesian Rates (SEBSR) ---------
+
 aggr_muac <- muac |>
   mutate(
     long_x = st_coordinates(geometry)[, 1],
@@ -36,7 +37,7 @@ aggr_muac <- muac |>
   ) |>
   st_transform(crs = st_crs(uga2_district))
 
-### -------------------------- Calculate spatial weights: K-Near Neighbours ----
+### Calculate spatial weights: K-Near Neighbours ----
 sp_wts_muac <- aggr_muac |>
   knearneigh(
     k = 4,
@@ -45,7 +46,7 @@ sp_wts_muac <- aggr_muac |>
   ) |>
   knn2nb(row.names = NULL)
 
-### ------------------------------------------------------- Calculate rates ----
+### Calculate rates ----
 sebsr_muac <- EBlocal(
   ri = aggr_muac$cases,
   ni = aggr_muac$pop,
@@ -56,8 +57,8 @@ sebsr_muac <- EBlocal(
 wrangled_muac <- cbind(aggr_muac, sebsr_muac)
 
 ## ---- Map rates --------------------------------------------------------------
-### --------------------------------------------------------- Map raw rates ----
 
+### Map raw rates ----
 #### Create a categorical variable with custom breakpoints ----
 wrangled_muac <- wrangled_muac |>
   mutate(
@@ -122,4 +123,4 @@ uga_sampling_points_muac <- ggplot(data = uga2_district) +
   ) +
   theme_void()
 
-################################ End of workflow ###############################
+# ============================== End of workflow ===============================

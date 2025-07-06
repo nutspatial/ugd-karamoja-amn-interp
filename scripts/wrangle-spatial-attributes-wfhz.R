@@ -1,16 +1,16 @@
-################################################################################
-#             WORKFLOW TO WRANGLE DATA THROUGH SPATIAL ATTRIBUTES              #
-################################################################################
+# ==============================================================================
+#             WORKFLOW TO WRANGLE DATA THROUGH SPATIAL ATTRIBUTES              
+# ==============================================================================
 
 ## ---- Filter out Karamoja districts and reproject CRS ------------------------
 
-### ---------------------------------------------------- List of districts -----
+### List of districts -----
 districts <- c(
   "Abim", "Amudat", "Kotido", "Karenga", "Kaabong", "Napak",
   "Nakapiripirit", "Nabilatuk", "Moroto"
 )
 
-### ---------------------------------------------- Filter out and reproject ----
+### Filter out and reproject ----
 uga2_district <- st_read(
   dsn = "data-raw/uga-shp/uga_admbnda_adm2_ubos_20200824.shp"
 ) |>
@@ -25,6 +25,7 @@ uga4_county <- st_read(
 
 
 ## ---- Set WFHZ data as an `sf` object  ---------------------------------------
+
 wfhz <- wfhz_data |>
   filter(!flag_wfhz == 1) |>
   select(enum_area, x, y, gam) |>
@@ -36,6 +37,7 @@ wfhz <- wfhz_data |>
   st_set_crs(value = "EPSG:4326")
 
 ## ---- Workflow to calculate Spatial Empirical Bayesian Rates (SEBSR) ---------
+
 aggr_wfhz <- wfhz |>
   mutate(
     long_x = st_coordinates(geometry)[, 1],
@@ -57,7 +59,7 @@ aggr_wfhz <- wfhz |>
   ) |>
   st_transform(crs = st_crs(uga2_district))
 
-### -------------------------- Calculate spatial weights: K-Near Neighbours ----
+### Calculate spatial weights: K-Near Neighbours ----
 sp_wts_wfhz <- aggr_wfhz |>
   knearneigh(
     k = 4,
@@ -66,7 +68,7 @@ sp_wts_wfhz <- aggr_wfhz |>
   ) |>
   knn2nb(row.names = NULL)
 
-### ------------------------------------------------------- Calculate rates ----
+### Calculate rates ----
 sebsr_wfhz <- EBlocal(
   ri = aggr_wfhz$cases,
   ni = aggr_wfhz$pop,
@@ -77,7 +79,8 @@ sebsr_wfhz <- EBlocal(
 wrangled_wfhz <- cbind(aggr_wfhz, sebsr_wfhz)
 
 ## ---- Map rates --------------------------------------------------------------
-### ----------------- Create a categorical variable with custom breakpoints ----
+
+### Create a categorical variable with custom breakpoints ----
 wrangled_wfhz <- wrangled_wfhz |>
   mutate(
     est = est * 100,
@@ -97,7 +100,7 @@ wrangled_wfhz <- wrangled_wfhz |>
     )
   )
 
-#### ------------------------------------------------------- Plot raw rates ----
+#### Plot raw rates ----
 ggplot(data = uga2_district) +
   geom_sf(
     fill = "white",
@@ -119,7 +122,7 @@ ggplot(data = uga2_district) +
   ) +
   theme_void()
 
-### ------------------------------------------------------------ Plot SEBSR ----
+### Plot SEBSR ----
 uga_sampling_points <- ggplot(data = uga2_district) +
   geom_sf(
     fill = "white",
@@ -141,4 +144,4 @@ uga_sampling_points <- ggplot(data = uga2_district) +
   ) +
   theme_void()
 
-################################ End of workflow ###############################
+# ============================== End of workflow ===============================

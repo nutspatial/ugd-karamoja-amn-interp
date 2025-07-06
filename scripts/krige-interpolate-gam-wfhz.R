@@ -1,16 +1,17 @@
-################################################################################
-#                            INTERPOLATE GAM by WFHZ                           #
-################################################################################
+# ==============================================================================
+#                            INTERPOLATE GAM by WFHZ                           
+# ==============================================================================
 
 ## ---- Create a surface to interpolate on -------------------------------------
+
 grid <- uga4_county |>
   st_bbox() |>
   st_as_stars(dx = 2000) |>
   st_crop(uga4_county)
 
 ## ---- Fit a variogram model --------------------------------------------------
-### ------------------------------------------------ Experimental variogram ----
 
+### Experimental variogram ----
 #### Check the maximum and minimum distance between sampling points ----
 dist_max <- max(dist(st_coordinates(wrangled_wfhz))) / 2
 dist_min <- min(dist(st_coordinates(wrangled_wfhz)))
@@ -70,7 +71,7 @@ ggplot() +
     title = "Empirical & Fitted Variogram"
   )
 
-### -------------------------------- Cross-validation: leave-one-out method ----
+### Cross-validation: leave-one-out method ----
 cv_wfhz <- krige.cv(
   formula = est ~ 1,
   model = empirical_variogram_wfhz,
@@ -79,7 +80,7 @@ cv_wfhz <- krige.cv(
   nmax = 4
 )
 
-### ------------------------------------------- Cross-validation statistics ----
+### Cross-validation statistics ----
 cv_wfhz_stats <- cv_wfhz |>
   as_tibble() |>
   summarise(
@@ -90,7 +91,7 @@ cv_wfhz_stats <- cv_wfhz |>
     r2_predobs = cor(observed - residual, residual, use = "complete.obs") ## Ideally should be close to 0
   )
 
-### --------------------------------------------- Plot predicted ~ observed ----
+### Plot predicted ~ observed ----
 uga_scatterplot_wfhz <- ggplot(cv_wfhz, aes(x = var1.pred, y = observed)) +
   geom_point(size = 1.2, color = "#BA4A00") +
   geom_abline(
@@ -112,6 +113,7 @@ uga_scatterplot_wfhz <- ggplot(cv_wfhz, aes(x = var1.pred, y = observed)) +
   )
 
 ## ---- Interpolate ------------------------------------------------------------
+
 interp_wfhz <- krige(
   formula = est ~ 1,
   locations = wrangled_wfhz,
@@ -129,8 +131,7 @@ interp_wfhz <- krige(
     )
   )
 
-### ------------------------------------------------- Visualize map surface ---- 
-
+### Visualize map surface ---- 
 #### Static map ----
 uga_surface_wfhz <- ggplot() +
   geom_stars(
@@ -173,8 +174,7 @@ mapshot2(
   url = "surface-map-GAM-by-WFHZ.html"
 )
 
-### -------------------------------------------- Prediction standard errors ----
-
+### Prediction standard errors ----
 #### Interpolate standardized standard errors ----
 zse_wfhz <- krige(
   formula = zscore ~ 1, 
@@ -223,8 +223,7 @@ uga_se_wfhz <- ggplot() +
   ) +
   theme_void()
 
-### ------------------------------------------------------- Get areal means ----
-
+### Get areal means ----
 #### At district level (ADM2_EN) ----
 pred_mean_district_wfhz <- krige(
   formula = est ~ 1,
@@ -354,4 +353,4 @@ uga_choropleth_wfhz_county <- ggplot() +
   ) +
   theme_void()
 
-################################ End of workflow ###############################
+# ============================== End of workflow ===============================

@@ -1,8 +1,9 @@
-################################################################################
-#                   INTERPOLATE GAM by WFHZ  WITH `{automap}`                  #
-################################################################################
+# ==============================================================================
+#                   INTERPOLATE GAM by WFHZ  WITH `{automap}`                  
+# ==============================================================================
 
 ## ---- Automatically fit a variogram ------------------------------------------
+
 auto_exp_variogram_wfhz <- autofitVariogram(
   formula = est ~ 1,
   input_data = wrangled_wfhz,
@@ -17,6 +18,7 @@ auto_exp_variogram_wfhz <- autofitVariogram(
 )
 
 ## ---- Perform automatic interpolation ----------------------------------------
+
 auto_interp_wfhz <- autoKrige(
   formula = est ~ 1,
   input_data = wrangled_wfhz,
@@ -31,7 +33,7 @@ auto_interp_wfhz <- autoKrige(
   nmax = 4
 )
 
-### --------- Bin interpolated GAM prevalence into IPC AMN Phase categories ----
+### Bin interpolated GAM prevalence into IPC AMN Phase categories ----
 auto_interp_wfhz$krige_output <- auto_interp_wfhz$krige_output |> 
   mutate(
     var1.pred.cat = cut(
@@ -43,6 +45,7 @@ auto_interp_wfhz$krige_output <- auto_interp_wfhz$krige_output |>
   )
 
 ## ---- Perfom automatic cross-validation --------------------------------------
+
 auto_cv_wfhz <- autoKrige.cv(
   formula = est ~ 1,
   input_data = wrangled_wfhz,
@@ -57,7 +60,7 @@ auto_cv_wfhz <- autoKrige.cv(
   verbose = c(FALSE, TRUE)
 )
 
-### ------------------------------------------- Cross-validation statistics ----
+### Cross-validation statistics ----
 auto_cv_wfhz_stats <- auto_cv_wfhz[[1]] |>
   as_tibble() |>
   summarise(
@@ -68,7 +71,7 @@ auto_cv_wfhz_stats <- auto_cv_wfhz[[1]] |>
     r2_predobs = cor(observed - residual, residual, use = "complete.obs") ## Ideally should be close to 0
   )
 
-### --------------------------------------------- Plot predicted ~ observed ----
+### Plot predicted ~ observed ----
 ggplot(auto_cv_wfhz[[1]], aes(x = var1.pred, y = observed)) +
   geom_point(size = 1.2, color = "#BA4A00") +
   geom_abline(
@@ -94,8 +97,7 @@ ggplot(auto_cv_wfhz[[1]], aes(x = var1.pred, y = observed)) +
     plot.subtitle = element_text(size = 9, colour = "#706E6D")
   )
 
-### ------------------------------------------------- Visualize map surface ----
-
+### Visualize map surface ----
 #### Static map ----
 ggplot() +
   geom_stars(
@@ -130,8 +132,7 @@ auto_interp_wfhz[[1]] |>
     trim = TRUE
   )
 
-### -------------------------------------------- Predicting standard errors ----
-
+### Predicting standard errors ----
 #### Interpolate standardized standard errors ----
 auto_zse_wfhz <- krige(
   formula = zscore ~ 1, 
@@ -186,7 +187,7 @@ ggplot() +
     plot.title = element_text(colour = "#706E6D", size = 11)
   )
 
-### ------------------------------------------------------- Get areal means ----
+### Get areal means ----
 #### At district level (ADM2_EN) ----
 auto_pred_mean_district_wfhz <- krige(
   formula = est ~ 1,
@@ -327,4 +328,5 @@ ggplot() +
     plot.title = element_text(size = 8)
   ) +
   theme_void()
-################################ End of workflow ###############################
+
+# ============================== End of workflow ===============================

@@ -1,9 +1,10 @@
-################################################################################
-#                    RUN PLAUSIBILITY CHECK OF ANTHRO DATA                     #
-################################################################################
+# ==============================================================================
+#                    RUN PLAUSIBILITY CHECK OF ANTHRO DATA                     
+# ==============================================================================
 
 
 ## ---- WFHZ data --------------------------------------------------------------
+
 quality_wfhz <- wfhz_data |>
   group_by(district) |>
   mw_plausibility_check_wfhz(
@@ -15,6 +16,7 @@ quality_wfhz <- wfhz_data |>
   )
 
 ## ---- MUAC data through MUAC-for-age z-scores --------------------------------
+
 quality_mfaz <- muac_data |>
   group_by(district) |>
   mw_plausibility_check_mfaz(
@@ -24,4 +26,4 @@ quality_mfaz <- muac_data |>
     flags = flag_mfaz
   )
 
-################################ End of workflow ###############################
+# ============================== End of workflow ===============================

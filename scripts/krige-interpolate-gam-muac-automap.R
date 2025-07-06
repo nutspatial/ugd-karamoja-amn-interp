@@ -1,8 +1,9 @@
-################################################################################
-#                   INTERPOLATE GAM by MUAC  WITH `{automap}`                  #
-################################################################################
+# ==============================================================================
+#                   INTERPOLATE GAM by MUAC  WITH `{automap}`                  
+# ==============================================================================
 
 ## ---- Automatically fit a variogram ------------------------------------------
+
 auto_exp_variogram_muac <- autofitVariogram(
   formula = est ~ 1,
   input_data = wrangled_muac,
@@ -17,6 +18,7 @@ auto_exp_variogram_muac <- autofitVariogram(
 )
 
 ## ---- Perform automatic interpolation ----------------------------------------
+
 auto_interp_muac <- autoKrige(
   formula = est ~ 1,
   input_data = wrangled_muac,
@@ -30,7 +32,8 @@ auto_interp_muac <- autoKrige(
   nmin = 3,
   nmax = 4
 )
-### --- Bin interpolated GAM prevalence into IPC AMN Phase categories ----
+
+### Bin interpolated GAM prevalence into IPC AMN Phase categories ----
 auto_interp_muac$krige_output <- auto_interp_muac$krige_output |> 
   mutate(
     var1.pred.cat = cut(
@@ -41,6 +44,7 @@ auto_interp_muac$krige_output <- auto_interp_muac$krige_output |>
   )
 
 ## ---- Perfom automatic cross-validation --------------------------------------
+
 auto_cv_muac <- autoKrige.cv(
   formula = est ~ 1,
   input_data = wrangled_muac,
@@ -55,7 +59,7 @@ auto_cv_muac <- autoKrige.cv(
   verbose = c(FALSE, TRUE)
 )
 
-### ------------------------------------------- Cross-validation statistics ----
+### Cross-validation statistics ----
 auto_cv_muac_stats <- auto_cv_muac[[1]] |>
   as_tibble() |>
   summarise(
@@ -66,7 +70,7 @@ auto_cv_muac_stats <- auto_cv_muac[[1]] |>
     r2_predobs = cor(observed - residual, residual, use = "complete.obs") ## Ideally should be close to 0
   )
 
-### --------------------------------------------- Plot predicted ~ observed ----
+### Plot predicted ~ observed ----
 uga_scatterplot_muac <- ggplot(auto_cv_muac[[1]], aes(x = var1.pred, y = observed)) +
   geom_point(size = 1.2, color = "#BA4A00") +
   geom_abline(
@@ -91,8 +95,7 @@ uga_scatterplot_muac <- ggplot(auto_cv_muac[[1]], aes(x = var1.pred, y = observe
     plot.subtitle = element_text(size = 9, colour = "#706E6D")
   )
 
-### ------------------------------------------------- Visualize map surface ----
-
+### Visualize map surface ----
 #### Static map ----
 uga_surface_muac <- ggplot() +
   geom_stars(
@@ -129,8 +132,7 @@ mv_muac <- auto_interp_muac[[1]] |>
     url = "surface-map-GAM-by-MUAC.html"
   )
 
-### -------------------------------------------- Predicting standard errors ----
-
+### Predicting standard errors ----
 #### Interpolate standardized standard errors ----
 auto_zse_muac <- krige(
   formula = zscore ~ 1, 
@@ -179,7 +181,7 @@ uga_se_muac <- ggplot() +
   ) +
   theme_void()
 
-### ------------------------------------------------------- Get areal means ----
+### Get areal means ----
 #### At district level (ADM2_EN) ----
 auto_pred_mean_district_muac <- krige(
   formula = est ~ 1,
@@ -311,4 +313,4 @@ uga_choropleth_muac_county <- ggplot() +
   ) +
   theme_void()
 
-################################ End of workflow ###############################
+# ============================== End of workflow ===============================
