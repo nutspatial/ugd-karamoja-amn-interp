@@ -197,6 +197,7 @@ auto_pred_mean_district_wfhz <- krige(
   newdata = uga2_district
 ) |> 
   mutate(
+    var1.pred = round(var1.pred, 1),
     var1.pred.cat = cut(
       x = var1.pred,
       breaks = c(-Inf, 5.0, 9.9, 14.9, 29.9, Inf),
@@ -279,6 +280,7 @@ auto_pred_mean_county_wfhz <- krige(
   newdata = uga4_county
 ) |> 
   mutate(
+    var1.pred = round(var1.pred, 2),
     var1.pred.cat = cut(
       x = var1.pred,
       breaks = c(-Inf, 5.0, 9.9, 14.9, 29.9, Inf),

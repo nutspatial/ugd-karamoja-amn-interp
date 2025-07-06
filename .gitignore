@@ -5,3 +5,6 @@
 ugd-karamoja-amn-interp.Rproj
 
 /.quarto/
+
+reports/key-findings_files/
+reports/*.html
