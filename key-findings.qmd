@@ -208,10 +208,10 @@ value of the red point is hidden, and the remaining points are used to predict t
 #|   - "Choropleth map: County"
 #|   - "Choropleth map: District"
 
+uga_choropleth_wfhz_district
 uga_sampling_points
 uga_surface_wfhz
 uga_choropleth_wfhz_county
-uga_choropleth_wfhz_district
 ```
 
 ## {.smaller}
@@ -264,6 +264,7 @@ uga_scatterplot_wfhz
 
 ## {.smaller}
 ### Spatial Variation of GAM by MUAC
+::: {.incremental}
 ```{r}
 #| label: interp-surface-maps-muac
 #| layout-ncol: 4
@@ -273,16 +274,17 @@ uga_scatterplot_wfhz
 #| fig-align: "center"
 #| fig-dpi: 100
 #| fig-subcap: 
+#|   - "Choropleth map"
 #|   - "Survey sampling points"
 #|   - "Predicted surface map"
 #|   - "Choropleth map: County"
-#|   - "Choropleth map: District"
 
+uga_choropleth_muac_district
 uga_sampling_points_muac
 uga_surface_muac
 uga_choropleth_muac_county
-uga_choropleth_muac_district
 ```
+:::
 
 ## {.smaller}
 ### Predicted Estimates of GAM by MUAC
