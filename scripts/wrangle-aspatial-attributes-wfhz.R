@@ -4,7 +4,7 @@
 
 ## ---- Wrangle weight-for-height data -----------------------------------------
 
-wfhz_data <- nut_data |> 
+nut_data <- nut_data |> 
   clean_names() |> 
   select(-c(parish, flag_who, whz_who, team, id, hh)) |> 
   mutate(
